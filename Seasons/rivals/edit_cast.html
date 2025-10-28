@@ -286,53 +286,229 @@
 
         <div id="errorMessage" class="error-message"></div>
 
-        <form id="castForm" method="POST" action="save_cast.php">
+        <form id="castForm">
             <div class="teams-container">
                 <!-- Male Teams Section -->
                 <div class="gender-section">
                     <h2 class="section-title">Male Teams (7 Teams)</h2>
                     <div class="teams-grid" id="male-teams">
-                        <?php for($i = 1; $i <= 7; $i++): ?>
+                        <!-- Male Team 1 -->
                         <div class="team-pair">
-                            <div class="team-header">Male Team <?php echo $i; ?></div>
+                            <div class="team-header">Male Team 1</div>
                             <div class="team-members">
-                                <!-- Player 1 -->
                                 <div class="team-member">
-                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_<?php echo $i; ?>_1_img">
-                                    <select class="player-selector" name="male_<?php echo $i; ?>_1" data-gender="male" onchange="updatePlayerImage(this, 'male_<?php echo $i; ?>_1_img')">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_1_1_img">
+                                    <select class="player-selector" name="male_1_1" data-gender="male" onchange="updatePlayerImage(this, 'male_1_1_img')">
                                         <option value="">Select Player 1</option>
-                                        <!-- Players will be populated by JavaScript -->
                                     </select>
                                     <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
                                     <div class="custom-player-section">
-                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_<?php echo $i; ?>_1_custom_name">
-                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_<?php echo $i; ?>_1_custom_image" onchange="updateCustomImage(this, 'male_<?php echo $i; ?>_1_img')">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_1_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_1_1_custom_image" onchange="updateCustomImage(this, 'male_1_1_img')">
                                         <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
                                     </div>
                                 </div>
-                                
-                                <!-- VS Separator -->
-                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">
-                                    VS
-                                </div>
-                                
-                                <!-- Player 2 -->
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
                                 <div class="team-member">
-                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_<?php echo $i; ?>_2_img">
-                                    <select class="player-selector" name="male_<?php echo $i; ?>_2" data-gender="male" onchange="updatePlayerImage(this, 'male_<?php echo $i; ?>_2_img')">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_1_2_img">
+                                    <select class="player-selector" name="male_1_2" data-gender="male" onchange="updatePlayerImage(this, 'male_1_2_img')">
                                         <option value="">Select Player 2</option>
-                                        <!-- Players will be populated by JavaScript -->
                                     </select>
                                     <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
                                     <div class="custom-player-section">
-                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_<?php echo $i; ?>_2_custom_name">
-                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_<?php echo $i; ?>_2_custom_image" onchange="updateCustomImage(this, 'male_<?php echo $i; ?>_2_img')">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_1_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_1_2_custom_image" onchange="updateCustomImage(this, 'male_1_2_img')">
                                         <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <?php endfor; ?>
+                        <!-- Male Team 2 -->
+                        <div class="team-pair">
+                            <div class="team-header">Male Team 2</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_2_1_img">
+                                    <select class="player-selector" name="male_2_1" data-gender="male" onchange="updatePlayerImage(this, 'male_2_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_2_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_2_1_custom_image" onchange="updateCustomImage(this, 'male_2_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_2_2_img">
+                                    <select class="player-selector" name="male_2_2" data-gender="male" onchange="updatePlayerImage(this, 'male_2_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_2_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_2_2_custom_image" onchange="updateCustomImage(this, 'male_2_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Male Team 3 -->
+                        <div class="team-pair">
+                            <div class="team-header">Male Team 3</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_3_1_img">
+                                    <select class="player-selector" name="male_3_1" data-gender="male" onchange="updatePlayerImage(this, 'male_3_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_3_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_3_1_custom_image" onchange="updateCustomImage(this, 'male_3_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_3_2_img">
+                                    <select class="player-selector" name="male_3_2" data-gender="male" onchange="updatePlayerImage(this, 'male_3_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_3_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_3_2_custom_image" onchange="updateCustomImage(this, 'male_3_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Male Team 4 -->
+                        <div class="team-pair">
+                            <div class="team-header">Male Team 4</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_4_1_img">
+                                    <select class="player-selector" name="male_4_1" data-gender="male" onchange="updatePlayerImage(this, 'male_4_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_4_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_4_1_custom_image" onchange="updateCustomImage(this, 'male_4_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_4_2_img">
+                                    <select class="player-selector" name="male_4_2" data-gender="male" onchange="updatePlayerImage(this, 'male_4_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_4_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_4_2_custom_image" onchange="updateCustomImage(this, 'male_4_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Male Team 5 -->
+                        <div class="team-pair">
+                            <div class="team-header">Male Team 5</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_5_1_img">
+                                    <select class="player-selector" name="male_5_1" data-gender="male" onchange="updatePlayerImage(this, 'male_5_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_5_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_5_1_custom_image" onchange="updateCustomImage(this, 'male_5_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_5_2_img">
+                                    <select class="player-selector" name="male_5_2" data-gender="male" onchange="updatePlayerImage(this, 'male_5_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_5_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_5_2_custom_image" onchange="updateCustomImage(this, 'male_5_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Male Team 6 -->
+                        <div class="team-pair">
+                            <div class="team-header">Male Team 6</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_6_1_img">
+                                    <select class="player-selector" name="male_6_1" data-gender="male" onchange="updatePlayerImage(this, 'male_6_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_6_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_6_1_custom_image" onchange="updateCustomImage(this, 'male_6_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_6_2_img">
+                                    <select class="player-selector" name="male_6_2" data-gender="male" onchange="updatePlayerImage(this, 'male_6_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_6_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_6_2_custom_image" onchange="updateCustomImage(this, 'male_6_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Male Team 7 -->
+                        <div class="team-pair">
+                            <div class="team-header">Male Team 7</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="male_7_1_img">
+                                    <select class="player-selector" name="male_7_1" data-gender="male" onchange="updatePlayerImage(this, 'male_7_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_7_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_7_1_custom_image" onchange="updateCustomImage(this, 'male_7_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="male_7_2_img">
+                                    <select class="player-selector" name="male_7_2" data-gender="male" onchange="updatePlayerImage(this, 'male_7_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="male_7_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="male_7_2_custom_image" onchange="updateCustomImage(this, 'male_7_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -340,47 +516,223 @@
                 <div class="gender-section">
                     <h2 class="section-title">Female Teams (7 Teams)</h2>
                     <div class="teams-grid" id="female-teams">
-                        <?php for($i = 1; $i <= 7; $i++): ?>
+                        <!-- Female Team 1 -->
                         <div class="team-pair">
-                            <div class="team-header">Female Team <?php echo $i; ?></div>
+                            <div class="team-header">Female Team 1</div>
                             <div class="team-members">
-                                <!-- Player 1 -->
                                 <div class="team-member">
-                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_<?php echo $i; ?>_1_img">
-                                    <select class="player-selector" name="female_<?php echo $i; ?>_1" data-gender="female" onchange="updatePlayerImage(this, 'female_<?php echo $i; ?>_1_img')">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_1_1_img">
+                                    <select class="player-selector" name="female_1_1" data-gender="female" onchange="updatePlayerImage(this, 'female_1_1_img')">
                                         <option value="">Select Player 1</option>
-                                        <!-- Players will be populated by JavaScript -->
                                     </select>
                                     <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
                                     <div class="custom-player-section">
-                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_<?php echo $i; ?>_1_custom_name">
-                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_<?php echo $i; ?>_1_custom_image" onchange="updateCustomImage(this, 'female_<?php echo $i; ?>_1_img')">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_1_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_1_1_custom_image" onchange="updateCustomImage(this, 'female_1_1_img')">
                                         <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
                                     </div>
                                 </div>
-                                
-                                <!-- VS Separator -->
-                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">
-                                    VS
-                                </div>
-                                
-                                <!-- Player 2 -->
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
                                 <div class="team-member">
-                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_<?php echo $i; ?>_2_img">
-                                    <select class="player-selector" name="female_<?php echo $i; ?>_2" data-gender="female" onchange="updatePlayerImage(this, 'female_<?php echo $i; ?>_2_img')">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_1_2_img">
+                                    <select class="player-selector" name="female_1_2" data-gender="female" onchange="updatePlayerImage(this, 'female_1_2_img')">
                                         <option value="">Select Player 2</option>
-                                        <!-- Players will be populated by JavaScript -->
                                     </select>
                                     <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
                                     <div class="custom-player-section">
-                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_<?php echo $i; ?>_2_custom_name">
-                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_<?php echo $i; ?>_2_custom_image" onchange="updateCustomImage(this, 'female_<?php echo $i; ?>_2_img')">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_1_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_1_2_custom_image" onchange="updateCustomImage(this, 'female_1_2_img')">
                                         <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <?php endfor; ?>
+                        <!-- Female Team 2 -->
+                        <div class="team-pair">
+                            <div class="team-header">Female Team 2</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_2_1_img">
+                                    <select class="player-selector" name="female_2_1" data-gender="female" onchange="updatePlayerImage(this, 'female_2_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_2_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_2_1_custom_image" onchange="updateCustomImage(this, 'female_2_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_2_2_img">
+                                    <select class="player-selector" name="female_2_2" data-gender="female" onchange="updatePlayerImage(this, 'female_2_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_2_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_2_2_custom_image" onchange="updateCustomImage(this, 'female_2_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Female Team 3 -->
+                        <div class="team-pair">
+                            <div class="team-header">Female Team 3</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_3_1_img">
+                                    <select class="player-selector" name="female_3_1" data-gender="female" onchange="updatePlayerImage(this, 'female_3_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_3_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_3_1_custom_image" onchange="updateCustomImage(this, 'female_3_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_3_2_img">
+                                    <select class="player-selector" name="female_3_2" data-gender="female" onchange="updatePlayerImage(this, 'female_3_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_3_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_3_2_custom_image" onchange="updateCustomImage(this, 'female_3_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Female Team 4 -->
+                        <div class="team-pair">
+                            <div class="team-header">Female Team 4</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_4_1_img">
+                                    <select class="player-selector" name="female_4_1" data-gender="female" onchange="updatePlayerImage(this, 'female_4_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_4_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_4_1_custom_image" onchange="updateCustomImage(this, 'female_4_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_4_2_img">
+                                    <select class="player-selector" name="female_4_2" data-gender="female" onchange="updatePlayerImage(this, 'female_4_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_4_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_4_2_custom_image" onchange="updateCustomImage(this, 'female_4_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Female Team 5 -->
+                        <div class="team-pair">
+                            <div class="team-header">Female Team 5</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_5_1_img">
+                                    <select class="player-selector" name="female_5_1" data-gender="female" onchange="updatePlayerImage(this, 'female_5_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_5_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_5_1_custom_image" onchange="updateCustomImage(this, 'female_5_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_5_2_img">
+                                    <select class="player-selector" name="female_5_2" data-gender="female" onchange="updatePlayerImage(this, 'female_5_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_5_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_5_2_custom_image" onchange="updateCustomImage(this, 'female_5_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Female Team 6 -->
+                        <div class="team-pair">
+                            <div class="team-header">Female Team 6</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_6_1_img">
+                                    <select class="player-selector" name="female_6_1" data-gender="female" onchange="updatePlayerImage(this, 'female_6_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_6_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_6_1_custom_image" onchange="updateCustomImage(this, 'female_6_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_6_2_img">
+                                    <select class="player-selector" name="female_6_2" data-gender="female" onchange="updatePlayerImage(this, 'female_6_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_6_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_6_2_custom_image" onchange="updateCustomImage(this, 'female_6_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Female Team 7 -->
+                        <div class="team-pair">
+                            <div class="team-header">Female Team 7</div>
+                            <div class="team-members">
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+1" class="member-image" id="female_7_1_img">
+                                    <select class="player-selector" name="female_7_1" data-gender="female" onchange="updatePlayerImage(this, 'female_7_1_img')">
+                                        <option value="">Select Player 1</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_7_1_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_7_1_custom_image" onchange="updateCustomImage(this, 'female_7_1_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; color: #89F336; font-weight: 700; font-size: 14px;">VS</div>
+                                <div class="team-member">
+                                    <img src="https://via.placeholder.com/90?text=Player+2" class="member-image" id="female_7_2_img">
+                                    <select class="player-selector" name="female_7_2" data-gender="female" onchange="updatePlayerImage(this, 'female_7_2_img')">
+                                        <option value="">Select Player 2</option>
+                                    </select>
+                                    <button type="button" class="toggle-btn" onclick="toggleCustomPlayer(this)">Custom Player</button>
+                                    <div class="custom-player-section">
+                                        <input type="text" class="custom-input" placeholder="Player Name" name="female_7_2_custom_name">
+                                        <input type="text" class="custom-input" placeholder="Image URL" name="female_7_2_custom_image" onchange="updateCustomImage(this, 'female_7_2_img')">
+                                        <button type="button" class="toggle-btn" onclick="toggleChoosePlayer(this)">Choose Player</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -400,34 +752,30 @@
             female_players: []
         };
 
-        // Track selected players to prevent duplicates
-        const selectedPlayers = new Set();
-
         // Load players from universal JSON file
-async function loadPlayers() {
-    try {
-        // Use relative path to go from seasons/rivals to Simulator/data/players.json
-        const response = await fetch('../../../data/players.json');
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load players: ${response.status} ${response.statusText}`);
+        async function loadPlayers() {
+            try {
+                const response = await fetch('../../../data/players.json');
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load players: ${response.status} ${response.statusText}`);
+                }
+                
+                playerData = await response.json();
+                document.getElementById('loadingMessage').style.display = 'none';
+                populatePlayerSelectors();
+            } catch (error) {
+                console.error('Error loading players:', error);
+                document.getElementById('loadingMessage').style.display = 'none';
+                showError(`Failed to load player data: ${error.message}. Please check that the players.json file exists in the correct location.`);
+            }
         }
-        
-        playerData = await response.json();
-        document.getElementById('loadingMessage').style.display = 'none';
-        populatePlayerSelectors();
-    } catch (error) {
-        console.error('Error loading players:', error);
-        document.getElementById('loadingMessage').style.display = 'none';
-        showError(`Failed to load player data: ${error.message}. Please check that the players.json file exists in the correct location.`);
-    }
-}
+
         // Populate all player selectors
         function populatePlayerSelectors() {
             // Populate male selectors
             const maleSelectors = document.querySelectorAll('select[data-gender="male"]');
             maleSelectors.forEach(select => {
-                // Clear existing options except the first one
                 while (select.options.length > 1) {
                     select.remove(1);
                 }
@@ -451,7 +799,6 @@ async function loadPlayers() {
             // Populate female selectors
             const femaleSelectors = document.querySelectorAll('select[data-gender="female"]');
             femaleSelectors.forEach(select => {
-                // Clear existing options except the first one
                 while (select.options.length > 1) {
                     select.remove(1);
                 }
@@ -479,7 +826,7 @@ async function loadPlayers() {
             const imageUrl = selectedOption.getAttribute('data-image');
             const imageElement = document.getElementById(imageId);
             
-            if (imageUrl && selectElement.value) {
+            if (imageUrl && selectElement.value && imageUrl !== 'template') {
                 imageElement.src = imageUrl;
             } else {
                 imageElement.src = 'https://via.placeholder.com/90?text=Player';
@@ -504,12 +851,10 @@ async function loadPlayers() {
             const customNameInput = memberDiv.querySelector('input[placeholder="Player Name"]');
             const customImageInput = memberDiv.querySelector('input[placeholder="Image URL"]');
             
-            // Hide selector, show custom section
             selector.style.display = 'none';
             button.style.display = 'none';
             customSection.style.display = 'block';
             
-            // Set custom name if selector had a value
             if (selector.value) {
                 const selectedOption = selector.options[selector.selectedIndex];
                 customNameInput.value = selectedOption.textContent;
@@ -523,12 +868,10 @@ async function loadPlayers() {
             const selector = memberDiv.querySelector('.player-selector');
             const toggleBtn = memberDiv.querySelector('.toggle-btn');
             
-            // Show selector, hide custom section
             selector.style.display = 'block';
             toggleBtn.style.display = 'block';
             customSection.style.display = 'none';
             
-            // Clear custom inputs
             const customInputs = customSection.querySelectorAll('.custom-input');
             customInputs.forEach(input => {
                 input.value = '';
@@ -584,8 +927,105 @@ async function loadPlayers() {
                 return;
             }
 
-            // If validation passes, submit the form
-            document.getElementById('castForm').submit();
+            // If validation passes, save to localStorage
+            const castData = {
+                male_teams: [],
+                female_teams: []
+            };
+            
+            // Process male teams (1-7)
+            for (let i = 1; i <= 7; i++) {
+                const team = [];
+                
+                // Player 1
+                const player1Select = document.querySelector(`select[name="male_${i}_1"]`);
+                const player1CustomName = document.querySelector(`input[name="male_${i}_1_custom_name"]`).value;
+                const player1CustomImage = document.querySelector(`input[name="male_${i}_1_custom_image"]`).value;
+                
+                if (player1CustomName.trim()) {
+                    team.push({
+                        name: player1CustomName.trim(),
+                        image: player1CustomImage.trim() || 'https://via.placeholder.com/90?text=Custom'
+                    });
+                } else if (player1Select.value) {
+                    const selectedOption = player1Select.options[player1Select.selectedIndex];
+                    team.push({
+                        name: selectedOption.textContent,
+                        image: selectedOption.getAttribute('data-image') || 'https://via.placeholder.com/90?text=Player'
+                    });
+                }
+                
+                // Player 2
+                const player2Select = document.querySelector(`select[name="male_${i}_2"]`);
+                const player2CustomName = document.querySelector(`input[name="male_${i}_2_custom_name"]`).value;
+                const player2CustomImage = document.querySelector(`input[name="male_${i}_2_custom_image"]`).value;
+                
+                if (player2CustomName.trim()) {
+                    team.push({
+                        name: player2CustomName.trim(),
+                        image: player2CustomImage.trim() || 'https://via.placeholder.com/90?text=Custom'
+                    });
+                } else if (player2Select.value) {
+                    const selectedOption = player2Select.options[player2Select.selectedIndex];
+                    team.push({
+                        name: selectedOption.textContent,
+                        image: selectedOption.getAttribute('data-image') || 'https://via.placeholder.com/90?text=Player'
+                    });
+                }
+                
+                if (team.length > 0) {
+                    castData.male_teams.push({ members: team });
+                }
+            }
+            
+            // Process female teams (1-7)
+            for (let i = 1; i <= 7; i++) {
+                const team = [];
+                
+                // Player 1
+                const player1Select = document.querySelector(`select[name="female_${i}_1"]`);
+                const player1CustomName = document.querySelector(`input[name="female_${i}_1_custom_name"]`).value;
+                const player1CustomImage = document.querySelector(`input[name="female_${i}_1_custom_image"]`).value;
+                
+                if (player1CustomName.trim()) {
+                    team.push({
+                        name: player1CustomName.trim(),
+                        image: player1CustomImage.trim() || 'https://via.placeholder.com/90?text=Custom'
+                    });
+                } else if (player1Select.value) {
+                    const selectedOption = player1Select.options[player1Select.selectedIndex];
+                    team.push({
+                        name: selectedOption.textContent,
+                        image: selectedOption.getAttribute('data-image') || 'https://via.placeholder.com/90?text=Player'
+                    });
+                }
+                
+                // Player 2
+                const player2Select = document.querySelector(`select[name="female_${i}_2"]`);
+                const player2CustomName = document.querySelector(`input[name="female_${i}_2_custom_name"]`).value;
+                const player2CustomImage = document.querySelector(`input[name="female_${i}_2_custom_image"]`).value;
+                
+                if (player2CustomName.trim()) {
+                    team.push({
+                        name: player2CustomName.trim(),
+                        image: player2CustomImage.trim() || 'https://via.placeholder.com/90?text=Custom'
+                    });
+                } else if (player2Select.value) {
+                    const selectedOption = player2Select.options[player2Select.selectedIndex];
+                    team.push({
+                        name: selectedOption.textContent,
+                        image: selectedOption.getAttribute('data-image') || 'https://via.placeholder.com/90?text=Player'
+                    });
+                }
+                
+                if (team.length > 0) {
+                    castData.female_teams.push({ members: team });
+                }
+            }
+            
+            localStorage.setItem('rivals_cast', JSON.stringify(castData));
+            alert('Cast saved successfully!');
+            window.location.href = 'rivals.html';
         }
 
         // Show error message
@@ -593,15 +1033,12 @@ async function loadPlayers() {
             const errorMessage = document.getElementById('errorMessage');
             errorMessage.textContent = message;
             errorMessage.style.display = 'block';
-            
-            // Scroll to error message
             errorMessage.scrollIntoView({ behavior: 'smooth' });
         }
 
         // Reset all selections
         function resetCast() {
             if (confirm('Are you sure you want to reset all players? This cannot be undone.')) {
-                // Reset all selectors
                 const selectors = document.querySelectorAll('.player-selector');
                 selectors.forEach(select => {
                     select.selectedIndex = 0;
@@ -612,31 +1049,26 @@ async function loadPlayers() {
                     }
                 });
                 
-                // Reset all custom inputs
                 const customInputs = document.querySelectorAll('.custom-input');
                 customInputs.forEach(input => {
                     input.value = '';
                 });
                 
-                // Hide all custom sections
                 const customSections = document.querySelectorAll('.custom-player-section');
                 customSections.forEach(section => {
                     section.style.display = 'none';
                 });
                 
-                // Show all toggle buttons
                 const toggleButtons = document.querySelectorAll('.toggle-btn');
                 toggleButtons.forEach(button => {
                     button.style.display = 'block';
                 });
                 
-                // Show all selectors
                 const allSelectors = document.querySelectorAll('.player-selector');
                 allSelectors.forEach(select => {
                     select.style.display = 'block';
                 });
 
-                // Clear any error messages
                 document.getElementById('errorMessage').style.display = 'none';
             }
         }
