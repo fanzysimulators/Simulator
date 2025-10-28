@@ -407,7 +407,7 @@
 async function loadPlayers() {
     try {
         // Use relative path to go from seasons/rivals to Simulator/data/players.json
-        const response = await fetch('../../../../data/players.json');
+        const response = await fetch('../../../data/players.json');
         
         if (!response.ok) {
             throw new Error(`Failed to load players: ${response.status} ${response.statusText}`);
@@ -422,7 +422,6 @@ async function loadPlayers() {
         showError(`Failed to load player data: ${error.message}. Please check that the players.json file exists in the correct location.`);
     }
 }
-
         // Populate all player selectors
         function populatePlayerSelectors() {
             // Populate male selectors
