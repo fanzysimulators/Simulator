@@ -755,7 +755,7 @@
         // Load players from universal JSON file
         async function loadPlayers() {
             try {
-                const response = await fetch('../../../data/players.json');
+                const response = await fetch('rivals/data/players.json');
                 
                 if (!response.ok) {
                     throw new Error(`Failed to load players: ${response.status} ${response.statusText}`);
@@ -1078,3 +1078,4 @@
     </script>
 </body>
 </html>
+
