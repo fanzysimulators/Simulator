@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — The Challenge: Cutthroat</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#1a2233; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .muted { opacity:.85; font-weight:300; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* Google Sheets-like skin, centered, borders #a9a9a9 */
+  .s0{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s1{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s3{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#00bfff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WIN */
+  .s5{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#008000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* ELIM */
+  .s6{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#00ff00;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WINNER */
+  .s8{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#87ceeb;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SECOND/THIRD */
+  .s11{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ff6347;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* OUT */
+  .s12{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#a9a9a9;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* after OUT grey */
+  .sSAFE{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SAFE == white */
+
+  .ritz .grid-container {
+    display: inline-block;
+    max-width: 100%;
+    background: var(--panel);
+    border: 1px solid #a9a9a9; /* spreadsheet frame border */
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow: auto;
+  }
+
+  /* Keep sheet centered, allow custom widths */
+  table.waffle {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: auto;
+    margin: 0 auto;
+  }
+
+  /* Thin team color column, but as a proper table cell */
+  .swatch {
+    border-bottom:1px SOLID #a9a9a9;
+    border-right:1px SOLID #a9a9a9;
+    width:14px !important;
+    min-width:14px !important;
+    max-width:14px !important;
+    padding:0 !important;
+    text-align:center;
+  }
+
+h1 {
+  font-weight:700;
+  margin:6px 0 2px;
+  text-align:center;   /* <--- this centers it */
+}
+
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const KEY = "challenge-cutthroat-season";
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+  const NUM_EPISODES = 10; // 9 dailies + 1 final
+
+  function readState() {
+    const tryGet = (store) => { try { return store.getItem(KEY); } catch (e) { return null; } };
+    let raw = tryGet(sessionStorage) || tryGet(localStorage);
+    if (!raw && window.opener) {
+      try {
+        raw = window.opener.sessionStorage.getItem(KEY) || window.opener.localStorage.getItem(KEY);
+      } catch (e) {}
+    }
+    if (!raw && location.hash.length > 1) {
+      const h = decodeURIComponent(location.hash.slice(1));
+      try { raw = atob(h); } catch (e) { raw = h; }
+    }
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+
+  const state = readState();
+  if (!state || !state.episodes || !state.players) {
+    msg.style.display = "block";
+    msg.textContent = 'No Cutthroat season found. Open the Cutthroat simulator, simulate the season, then click "Season Chart".';
+    return;
+  }
+
+  const players = Array.isArray(state.players) ? state.players.slice() : [];
+  if (!players.length) {
+    msg.style.display = "block";
+    msg.textContent = 'Season data is missing cast information.';
+    return;
+  }
+
+  const byId = {};
+  players.forEach(p => { if (p && p.id) byId[p.id] = p; });
+
+  function nicknameOf(id){
+    const p = byId[id];
+    if (!p) return id;
+    return p.nickname || p.name || id;
+  }
+  function teamOf(id){
+    const p = byId[id];
+    return p ? p.team || null : null;
+  }
+  function teamColorOf(id){
+    const team = teamOf(id);
+    if (team === "red") return "#ff0000";
+    if (team === "blue") return "#0000ff";
+    if (team === "grey") return "#808080";
+    return "#a9a9a9";
+  }
+
+  const placements = state.placements || { final:{}, eliminated:[] };
+  const eliminated = Array.isArray(placements.eliminated) ? placements.eliminated.slice() : [];
+  const elimMap = {};
+  eliminated.forEach(rec => {
+    if (!rec || !rec.id) return;
+    const cur = elimMap[rec.id];
+    if (cur == null || rec.episode < cur) {
+      elimMap[rec.id] = rec.episode;
+    }
+  });
+
+  function aliveTeam(teamKey){
+    return players
+      .filter(p => p && p.team === teamKey && p.alive !== false)
+      .map(p => p.id);
+  }
+
+  const winnersTeam = placements.final && placements.final.first || null;
+  const secondTeam  = placements.final && placements.final.second || null;
+  const thirdTeam   = placements.final && placements.final.third || null;
+
+  const winnersBlock = winnersTeam ? aliveTeam(winnersTeam) : [];
+  const secondBlock  = secondTeam  ? aliveTeam(secondTeam)  : [];
+  const thirdBlock   = thirdTeam   ? aliveTeam(thirdTeam)   : [];
+
+  const eliminatedSorted = eliminated.slice().sort((a,b) => (b.episode||0) - (a.episode||0));
+  const eliminatedIds = eliminatedSorted.map(x => x.id).filter(Boolean);
+
+  const seen = new Set();
+  function pushUnique(arr, id){
+    if (!id || seen.has(id)) return;
+    seen.add(id); arr.push(id);
+  }
+
+  const rowOrder = [];
+  winnersBlock.forEach(id => pushUnique(rowOrder, id));
+  secondBlock.forEach(id => pushUnique(rowOrder, id));
+  thirdBlock.forEach(id => pushUnique(rowOrder, id));
+  eliminatedIds.forEach(id => pushUnique(rowOrder, id));
+  players.forEach(p => pushUnique(rowOrder, p.id)); // include any leftovers
+
+  function td(cls, text, attrs){
+    const el = document.createElement("td");
+    el.className = cls;
+    if (attrs && attrs.colspan) el.colSpan = attrs.colspan;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  function buildHeader(table){
+    const thead = document.createElement("thead");
+    const tr = document.createElement("tr");
+    tr.appendChild(td("s0","Player",{colspan:2}));
+    for (let ep=1; ep<=NUM_EPISODES-1; ep++){
+      tr.appendChild(td("s0","Ep "+ep));
+    }
+    tr.appendChild(td("s0","Finale"));
+    thead.appendChild(tr);
+    table.appendChild(thead);
+  }
+
+  function labelForEpisode(pid, ep){
+    const elimEp = elimMap[pid];
+    if (elimEp && ep > elimEp){
+      return { text:"", cls:"s12" };
+    }
+
+    const E = state.episodes[ep];
+    if (!E){
+      return { text:"", cls: elimEp && ep >= elimEp ? "s12" : "sSAFE" };
+    }
+
+    const statusIds = Array.isArray(E.status) ? E.status : [];
+    const aliveHere = new Set(statusIds);
+
+    const elim = E.elimination || {};
+    const mu = (elim.matchups) ? elim.matchups : {};
+
+    let isWinner = false, isLoser = false;
+    ["female","male"].forEach(g => {
+      const m = mu[g];
+      if (!m) return;
+      if (m.winner === pid) isWinner = true;
+      if (m.loser === pid)  isLoser  = true;
+    });
+
+    if (isLoser){
+      return { text:"OUT", cls:"s11" };
+    }
+    if (isWinner){
+      return { text:"ELIM", cls:"s5" };
+    }
+
+    const daily = E.daily || {};
+    const winnersTeams = Array.isArray(daily.winners) ? daily.winners : [];
+    const winningTeam = winnersTeams[0] || null;
+    const myTeam = teamOf(pid);
+
+    if (aliveHere.has(pid) && winningTeam && myTeam === winningTeam){
+      return { text:"WIN", cls:"s3" };
+    }
+
+    if (!aliveHere.has(pid)){
+      if (elimEp && ep >= elimEp){
+        return { text:"", cls:"s12" };
+      }
+      return { text:"", cls:"s12" };
+    }
+
+    return { text:"SAFE", cls:"sSAFE" };
+  }
+
+  function labelForFinale(pid){
+    const elimEp = elimMap[pid];
+    if (elimEp){
+      return { text:"", cls:"s12" };
+    }
+    const team = teamOf(pid);
+    if (!team){
+      return { text:"", cls:"s12" };
+    }
+    if (team === winnersTeam){
+      return { text:"WINNER", cls:"s6" };
+    }
+    if (team === secondTeam || team === thirdTeam){
+      return { text:(team === secondTeam ? "SECOND" : "THIRD"), cls:"s8" };
+    }
+    return { text:"", cls:"s12" };
+  }
+
+  function buildBody(table){
+    const tbody = document.createElement("tbody");
+
+    rowOrder.forEach(pid => {
+      const p = byId[pid];
+      if (!p) return;
+
+      const tr = document.createElement("tr");
+
+      const nameCell = td("s1", nicknameOf(pid));
+      nameCell.style.textAlign = "center";
+      tr.appendChild(nameCell);
+
+      const colorCell = document.createElement("td");
+      colorCell.className = "swatch";
+      colorCell.style.backgroundColor = teamColorOf(pid);
+      tr.appendChild(colorCell);
+
+      for (let ep=1; ep<=NUM_EPISODES-1; ep++){
+        const lab = labelForEpisode(pid, ep);
+        tr.appendChild(td(lab.cls, lab.text));
+      }
+
+      const finale = labelForFinale(pid);
+      tr.appendChild(td(finale.cls, finale.text));
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+  }
+
+  buildHeader(tbl);
+  buildBody(tbl);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — The Challenge: Fresh Meat</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#1a2233; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .muted { opacity:.85; font-weight:300; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* Google Sheets-like skin (wrapped text) */
+  .s0{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s1{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s3{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#00bfff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s5{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#008000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s6{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#00ff00;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s8{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#87ceeb;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s10{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#ffa500;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s11{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#ff6347;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s12{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#999999;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+
+  /* Container now sizes to content (no full-width stretch) */
+  .ritz .grid-container {
+    display: inline-block;   /* shrink to content width */
+    max-width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow: auto;          /* allow scroll if it still overflows */
+  }
+
+  /* Let the table keep its natural width */
+  table.waffle {
+    border-collapse: collapse;
+    table-layout: auto;      /* content-driven sizing */
+    width: auto;             /* important: no 100% stretch */
+  }
+
+  /* Color swatch: small, content-sized */
+  .swatch { border-bottom:1px SOLID #999;border-right:1px SOLID #999; width:18px; min-width:18px; padding:0; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const KEY = "challenge-fresh-meat-season";
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+  const EPISODES = 10;
+
+  function readState() {
+    const tryGet = (store) => { try { return store.getItem(KEY); } catch { return null; } };
+    let raw = tryGet(sessionStorage) || tryGet(localStorage);
+    if (!raw && window.opener) {
+      try { raw = window.opener.sessionStorage.getItem(KEY) || window.opener.localStorage.getItem(KEY); } catch {}
+    }
+    if (!raw && location.hash.length > 1) {
+      const h = decodeURIComponent(location.hash.slice(1));
+      try { raw = atob(h); } catch { raw = h; }
+    }
+    try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+  }
+
+  const state = readState();
+  if (!state || !state.chart || !state.teams || !state.cast) {
+    msg.style.display = "block";
+    msg.textContent = 'No season found. Open the simulator and click "Season Chart" after simulating.';
+    return;
+  }
+
+  const byPlayerId = Object.fromEntries((state.cast || []).filter(Boolean).map(c => [c.id, c]));
+  const byTeamId   = Object.fromEntries((state.teams || []).map(t => [t.id, t]));
+  const nameOf = (pid) => {
+    const p = byPlayerId[pid];
+    return p ? (p.nickname || p.name || pid) : pid;
+  };
+  const teamLabel = (t) => `${nameOf(t.maleId)} & ${nameOf(t.femaleId)}`;
+
+  const placements = state.placements || {};
+  const first  = placements.first  || null;
+  const second = placements.second || null;
+  const third  = placements.third  || null;
+  const fourth = placements.fourth || null;
+  const eliminatedOrder = (placements.eliminated || []).slice();
+  const remaining = (state.teams || []).map(t => t.id).filter(id =>
+    id !== first && id !== second && id !== third && id !== fourth && !eliminatedOrder.includes(id)
+  );
+
+  const rowOrder = []
+    .concat(first ? [first] : [])
+    .concat(second ? [second] : [])
+    .concat(third ? [third] : [])
+    .concat(fourth ? [fourth] : [])
+    .concat(eliminatedOrder.slice().reverse())
+    .concat(remaining);
+
+  const ledger = state.chart.episodes || {};
+
+  function buildHeader(table){
+    const thead = document.createElement('thead');
+    const r = document.createElement('tr');
+    r.appendChild(td('s0','Team'));
+    r.appendChild(td('s0','')); // color
+    for(let e=1;e<=9;e++) r.appendChild(td('s0', 'Ep ' + e));
+    r.appendChild(td('s0','Finale'));
+    thead.appendChild(r);
+    table.appendChild(thead);
+  }
+
+  function td(cls, text){
+    const el = document.createElement('td');
+    el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  function buildBody(table){
+    const tbody = document.createElement('tbody');
+
+    rowOrder.forEach((tid) => {
+      const team = byTeamId[tid]; if (!team) return;
+
+      let eliminated = false;
+
+      const tr = document.createElement('tr');
+      tr.appendChild(td('s1', teamLabel(team)));
+
+      const sw = document.createElement('td');
+      sw.className = 'swatch';
+      sw.style.backgroundColor = team.color || '#777';
+      tr.appendChild(sw);
+
+      for (let e=1; e<=9; e++){
+        if (eliminated){
+          tr.appendChild(td('s12',''));
+          continue;
+        }
+        const lab = labelForEpisode(ledger[String(e)] || {}, tid);
+        tr.appendChild(td(lab.cls, lab.text));
+        if (lab.text === 'OUT') eliminated = true;
+      }
+
+      if (eliminated){
+        tr.appendChild(td('s12',''));
+      } else {
+        const fin = labelForFinal(ledger["10"] || {}, tid);
+        tr.appendChild(td(fin.cls, fin.text));
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+  }
+
+  function labelForEpisode(epObj, teamId){
+    if (epObj.dailyWinner === teamId) return { text:'WIN', cls:'s3' };
+    if (epObj.elimLoser   === teamId) return { text:'OUT', cls:'s11' };
+    if (epObj.elimWinner  === teamId) return { text:'ELIM', cls:'s5' };
+    return { text:'SAFE', cls:'s1' };
+  }
+
+  function labelForFinal(finalObj, teamId){
+    const p = finalObj.finalPlacements || {};
+    if (p.first  === teamId) return { text:'WINNER', cls:'s6' };
+    if (p.second === teamId) return { text:'SECOND', cls:'s8' };
+    if (p.third  === teamId) return { text:'THIRD', cls:'s8' };
+    if (p.fourth === teamId) return { text:'FOURTH', cls:'s10' };
+    return { text:'', cls:'s12' };
+  }
+
+  buildHeader(tbl);
+  buildBody(tbl);
+})();
+</script>
+</body>
+</html>

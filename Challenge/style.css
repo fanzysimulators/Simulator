@@ -1,0 +1,321 @@
+  /* Typography & base alignment (template match) */
+  html, body, .btn, select, input, dialog, .mini-card, .panel, .top-nav, .accordion-trigger {
+    font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+  .page-shell .content { display:flex; flex-direction:column; align-items:center; }
+  .block { width:100%; max-width:1100px; }
+  .center { text-align:center; }
+  .muted { opacity:.85; font-weight:300; }
+  #ep-content, #ep-actions { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .actions-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+  .simulate-row { display:flex; justify-content:center; margin-top:12px; }
+  .btn.simulate { padding:14px 22px; font-weight:600; font-size:1.05rem; }
+
+  /* Cast selection — two teams per row */
+  .teams-grid{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(460px, 1fr));
+    gap:18px;
+    justify-items:center;
+  }
+  .team-box{
+    width:100%;
+    max-width:680px;
+    padding:18px;
+    border-radius:18px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)),
+      rgba(18,20,34,var(--panel-alpha));
+    border:2px solid rgba(120,130,155,.35);
+    box-shadow:var(--soft-shadow);
+    text-align:center;
+    box-sizing:border-box;
+  }
+  .team-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .team-head .label{ font-weight:600; }
+
+  .team-inner{
+    display:grid;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap:14px;
+  }
+
+  .team-slot{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    border-radius:14px;
+    padding:10px 6px 12px;
+    background:rgba(8,10,18,.82);
+    border:1px solid rgba(120,130,155,.38);
+  }
+  .team-slot .avatar{
+    width:70px; height:70px; border-radius:50%; object-fit:cover;
+    border:2px solid var(--glass-border);
+    box-shadow:0 0 0 3px rgba(12,18,30,.9);
+  }
+  .team-slot .name{
+    font-weight:500;
+  }
+  .team-slot .meta{
+    font-size:.80rem;
+    opacity:.80;
+  }
+  .team-slot.empty{
+    opacity:.6;
+  }
+  .team-slot.empty .avatar{
+    filter:grayscale(1) brightness(.6);
+  }
+
+  .cast-controls .filter{
+    display:flex; align-items:center; gap:8px;
+    background:rgba(11,13,20,.95);
+    border-radius:999px;
+    padding:6px 10px;
+    border:1px solid rgba(120,130,155,.55);
+  }
+  .cast-controls .filter span{
+    font-size:.85rem;
+    opacity:.9;
+  }
+  .cast-controls select{
+    border:none;
+    background:transparent;
+    color:inherit;
+    font-size:.9rem;
+    outline:none;
+    padding-right:4px;
+  }
+
+  /* Data warning banner */
+  .data-warning{
+    margin-bottom:12px;
+    padding:10px 14px;
+    border-radius:14px;
+    border:1px solid rgba(255,140,140,.7);
+    background:rgba(40,8,8,.92);
+    color:#ffeaea;
+    font-size:.9rem;
+  }
+
+  /* Status — compact cards (used also for placements) */
+  .status-grid{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(260px, 1fr));
+    gap:14px;
+    justify-items:center;
+  }
+  .status-card{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    padding:14px;
+    border-radius:16px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+      rgba(15,17,26,var(--panel-alpha));
+    border:1px solid rgba(120,130,155,.38);
+    box-shadow:var(--soft-shadow);
+    box-sizing:border-box;
+    width:100%;
+    max-width:360px;
+  }
+  .status-card .label{
+    font-size:.82rem;
+    opacity:.85;
+    margin-bottom:2px;
+  }
+  .status-card .team-name{
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .status-card .players{
+    font-size:.9rem;
+    opacity:.92;
+  }
+  .status-card .tag{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 9px; border-radius:999px;
+    border:1px solid rgba(120,130,155,.55);
+    background:rgba(8,10,18,.92);
+    font-size:.78rem;
+  }
+  .status-card .tag .dot{
+    width:8px; height:8px; border-radius:50%;
+  }
+
+  /* Color dots: winners/safe/bottom/eliminated */
+  .dot-win{
+    background:linear-gradient(135deg, #4ade80, #22c55e);
+    box-shadow:0 0 0 1px rgba(16,185,129,.6);
+  }
+  .dot-safe{
+    background:linear-gradient(135deg,#60a5fa,#3b82f6);
+    box-shadow:0 0 0 1px rgba(59,130,246,.6);
+  }
+  .dot-bottom{
+    background:linear-gradient(135deg,#fbbf24,#f97316);
+    box-shadow:0 0 0 1px rgba(245,158,11,.7);
+  }
+  .dot-elim{
+    background:linear-gradient(135deg,#fb7185,#ef4444);
+    box-shadow:0 0 0 1px rgba(248,113,113,.7);
+  }
+
+  /* Mini cards for episode notes / explanations */
+  .mini-card{
+    width:100%;
+    max-width:720px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01)),
+      rgba(17,19,28,var(--panel-alpha));
+    border:1px solid rgba(120,130,155,.42);
+    box-shadow:var(--soft-shadow);
+  }
+  .mini-card.note{
+    font-size:.9rem;
+    opacity:.9;
+  }
+  .mini-card h4{
+    margin:0 0 4px;
+    font-size:.95rem;
+  }
+  .mini-card p{
+    margin:0;
+    opacity:.9;
+  }
+
+  /* Actions row that shows the voting buttons, reveal buttons, etc. */
+  #ep-actions{
+    margin-top:6px;
+  }
+
+  /* Voting cards */
+  .vote-card{
+    width:100%;
+    max-width:720px;
+    padding:12px 14px;
+    border-radius:14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.01)),
+      rgba(17,19,28,var(--panel-alpha));
+    border:1px solid rgba(120,130,155,.42);
+    box-shadow:var(--soft-shadow);
+    box-sizing:border-box;
+  }
+  .vote-card .team-strip{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:6px;
+  }
+  .vote-card .team-strip img.avatar{
+    width:32px; height:32px; border-radius:50%; object-fit:cover;
+    border:1px solid rgba(255,255,255,.18);
+  }
+  .vote-card .team-name{
+    font-weight:600;
+  }
+  .vote-card .vote-text{
+    font-size:.9rem;
+    opacity:.9;
+  }
+
+  /* Matchup (elimination) cards */
+  .matchup-grid{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap:14px;
+    justify-items:center;
+  }
+  .matchup-card{
+    width:100%;
+    max-width:360px;
+    padding:14px;
+    border-radius:16px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+      rgba(15,17,26,var(--panel-alpha));
+    border:1px solid rgba(120,130,155,.38);
+    box-shadow:var(--soft-shadow);
+    box-sizing:border-box;
+  }
+  .matchup-card .label{
+    font-size:.82rem;
+    opacity:.85;
+    margin-bottom:2px;
+  }
+  .matchup-card .team-name{
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .matchup-card .players{
+    font-size:.9rem;
+    opacity:.92;
+  }
+  .matchup-card .score{
+    margin-top:8px;
+    font-size:.9rem;
+    opacity:.9;
+  }
+
+  /* Final placements grid reused from status-grid but more flexible */
+  .placements-grid{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(260px, 1fr));
+    gap:14px;
+    justify-items:center;
+  }
+  .placement-card{
+    width:100%;
+    max-width:360px;
+    padding:14px;
+    border-radius:16px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)),
+      rgba(15,17,26,var(--panel-alpha));
+    border:1px solid rgba(120,130,155,.38);
+    box-shadow:var(--soft-shadow);
+    box-sizing:border-box;
+    position:relative;
+  }
+  .placement-card .label{
+    font-size:.82rem;
+    opacity:.85;
+    margin-bottom:2px;
+  }
+  .placement-card .team-name{
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .placement-card .players{
+    font-size:.9rem;
+    opacity:.92;
+  }
+  .placement-card .tag{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 9px; border-radius:999px;
+    border:1px solid rgba(120,130,155,.55);
+    background:rgba(8,10,18,.92);
+    font-size:.78rem;
+  }
+
+  /* Finals times dialog table */
+  dialog#times-panel{
+    padding:18px;
+    border-radius:18px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+      rgba(15,17,26,1);
+    border:1px solid rgba(120,130,155,.48);
+    color:#fff;
+  }
+  dialog#times-panel table{ width:100%; border-collapse:collapse; font-size:.9rem; }
+  dialog#times-panel th,
+  dialog#times-panel td{
+    padding:4px 6px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    text-align:left;
+  }

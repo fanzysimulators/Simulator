@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — The Challenge: Free Agents</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#1a2233; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .muted { opacity:.85; font-weight:300; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* Google Sheets-like skin (keep same look as your attached page) */
+  .s0{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* header */
+  .s1{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SAFE + blank */
+  .s3{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#00bfff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WIN */
+  .s4{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#f5deb3;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* RISK */
+  .s5{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#008000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* ELIM (won elim) */
+  .s6{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#00ff00;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WINNER (bold) */
+  .s8{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#87ceeb;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SECOND/THIRD (bold) */
+  .s11{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#ff6347;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* OUT */
+  .s12{border-bottom:1px SOLID #999;border-right:1px SOLID #999;background-color:#999999;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* post-OUT gray */
+
+  /* Same container treatment as attached page: natural width, inset panel */
+  .ritz .grid-container {
+    display: inline-block;   /* shrink to content width */
+    max-width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow: auto;          /* allow scroll if it still overflows */
+  }
+
+  /* Let the table keep its natural width */
+  table.waffle {
+    border-collapse: collapse;
+    table-layout: auto;      /* content-driven sizing */
+    width: auto;             /* important: no 100% stretch */
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const KEY = "challenge-free-agents-season";
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+  const EP_MAX = 11; // Ep 1..11 + Finale col
+
+  function readState(){
+    try { return JSON.parse(sessionStorage.getItem(KEY)||"null"); }
+    catch { return null; }
+  }
+
+  const state = readState();
+  if(!state || !state.episodes){
+    msg.style.display = "block";
+    msg.textContent = 'No season found. Open the simulator and generate a season first.';
+    return;
+  }
+
+  // Resolve names from cast (nickname preferred)
+  const cast = Array.isArray(state.cast) ? state.cast.filter(Boolean) : [];
+  const byId = Object.fromEntries(cast.map(p => [p.id, p]));
+  const players = (state.players || cast).map(p => (typeof p === 'string' ? p : p.id)).filter(Boolean);
+
+  const placements = state.placements || { winners:{}, second:{}, third:{} };
+
+  function nameOf(id){
+    const p = byId[id];
+    if(p) return p.nickname || p.name || id;
+    const fromPlayers = (state.players||[]).find(x => x && x.id === id);
+    return (fromPlayers && (fromPlayers.nickname || fromPlayers.name)) || id;
+  }
+
+  function E(ep){ return state.episodes[String(ep)] || {}; }
+
+  // elimination stored as elimination.matchups.{male,female}.{winner,loser}
+  function elimWinnerOf(ep, pid){
+    const el = E(ep).elimination;
+    if(!el || !el.matchups) return false;
+    const m = el.matchups.male || {};
+    const f = el.matchups.female || {};
+    return (m.winner === pid) || (f.winner === pid);
+  }
+  function elimLoserOf(ep, pid){
+    const el = E(ep).elimination;
+    if(!el || !el.matchups) return false;
+    const m = el.matchups.male || {};
+    const f = el.matchups.female || {};
+    return (m.loser === pid) || (f.loser === pid);
+  }
+
+  // Episode cell: OUT > ELIM > (ep11 RISK) > WIN > RISK(bottom) > SAFE > blank
+  function epLabel(pid, ep){
+    const e = E(ep);
+
+    // elimination overrides
+    if (elimLoserOf(ep, pid)) return {t:'OUT', cls:'s11'};
+    if (elimWinnerOf(ep, pid)) return {t:'ELIM', cls:'s5'};
+
+    // Episode 11: everyone who draws is RISK
+    if (ep === 11 && e.draw_all){
+      const dm = (e.draw_all.order && e.draw_all.order.male)   || [];
+      const df = (e.draw_all.order && e.draw_all.order.female) || [];
+      if (dm.includes(pid) || df.includes(pid)) return {t:'RISK', cls:'s4'};
+    }
+
+    // Episodes 1–10: daily buckets
+    if (ep !== 11 && e.daily){
+      const winners = Array.isArray(e.daily.winners) ? e.daily.winners : [];
+      const safe    = Array.isArray(e.daily.safe)    ? e.daily.safe    : [];
+      const bottom  = Array.isArray(e.daily.bottom)  ? e.daily.bottom  : [];
+
+      if (winners.includes(pid)) return {t:'WIN',  cls:'s3'};
+      if (bottom.includes(pid))  return {t:'RISK', cls:'s4'};
+      if (safe.includes(pid))    return {t:'SAFE', cls:'s1'};
+    }
+    return {t:'', cls:'s1'}; // blank cell uses same white style as SAFE
+  }
+
+  // Finale label
+  function finaleLabel(pid){
+    if (placements.winners && (placements.winners.male === pid || placements.winners.female === pid))
+      return {t:'WINNER', cls:'s6'};
+    if (placements.second && (placements.second.male === pid || placements.second.female === pid))
+      return {t:'SECOND', cls:'s8'};
+    if (placements.third && (placements.third.male === pid || placements.third.female === pid))
+      return {t:'THIRD',  cls:'s8'};
+    return {t:'', cls:'s1'};
+  }
+
+  // Row order: winners (M,F) → second (M,F) → third (M,F) → ep11 OUT → ep10 OUT → … → ep1 OUT → remainder
+  const finalists = [
+    placements.winners?.male, placements.winners?.female,
+    placements.second?.male,  placements.second?.female,
+    placements.third?.male,   placements.third?.female
+  ].filter(Boolean);
+
+  const losersByEp = {};
+  for(let ep=1; ep<=EP_MAX; ep++){
+    const el = E(ep).elimination;
+    if(!el || !el.matchups) continue;
+    const m = el.matchups.male || {};
+    const f = el.matchups.female || {};
+    if (m.loser) (losersByEp[ep] ||= []).push(m.loser);
+    if (f.loser) (losersByEp[ep] ||= []).push(f.loser);
+  }
+  const eliminatedOrder = [];
+  for(let ep=EP_MAX; ep>=1; ep--){
+    (losersByEp[ep]||[]).forEach(id => { if(!finalists.includes(id)) eliminatedOrder.push(id); });
+  }
+  const seen = new Set([...finalists, ...eliminatedOrder]);
+  const remainder = players.filter(id => !seen.has(id));
+  const rowOrder = [...finalists, ...eliminatedOrder, ...remainder];
+
+  function td(cls, text){
+    const el = document.createElement('td');
+    el.className = cls;
+    if (text != null) el.textContent = text;
+    return el;
+  }
+
+  function buildHeader(table){
+    const thead = document.createElement('thead');
+    const r = document.createElement('tr');
+    r.appendChild(td('s0','Contestants'));
+    for(let e=1;e<=EP_MAX;e++) r.appendChild(td('s0','Ep ' + e));
+    r.appendChild(td('s0','Finale'));
+    thead.appendChild(r);
+    table.appendChild(thead);
+  }
+
+  function buildBody(table){
+    const tbody = document.createElement('tbody');
+
+    rowOrder.forEach(pid => {
+      const tr = document.createElement('tr');
+      tr.appendChild(td('s1', nameOf(pid)));
+
+      let eliminatedAt = 0;
+      for(let ep=1; ep<=EP_MAX; ep++){
+        if (eliminatedAt && ep > eliminatedAt){
+          tr.appendChild(td('s12',''));  // #DDDDDD after OUT, including trailing episodes
+          continue;
+        }
+        const lab = epLabel(pid, ep);
+        tr.appendChild(td(lab.cls, lab.t));
+        if (lab.t === 'OUT') eliminatedAt = ep;
+      }
+
+      // Finale cell also grays if eliminated earlier
+      const f = eliminatedAt ? {t:'', cls:'s12'} : finaleLabel(pid);
+      tr.appendChild(td(f.cls, f.t));
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+  }
+
+  // Render
+  tbl.innerHTML = '';
+  buildHeader(tbl);
+  buildBody(tbl);
+})();
+</script>
+</body>
+</html>

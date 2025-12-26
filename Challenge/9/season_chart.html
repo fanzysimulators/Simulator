@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — Battle of the Sexes 2</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#0b0f16;
+    --panel:#121826;
+    --border:#a9a9a9;
+    --ink:#e9eefb;
+  }
+
+  html, body {
+    margin:0;
+    padding:0;
+    font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+
+  .page {
+    padding:20px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  h1 {
+    font-weight:700;
+    margin:6px 0 12px;
+  }
+
+  .notice {
+    margin:18px 0;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:rgba(40,60,90,.35);
+  }
+
+  table.waffle {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: auto;
+  }
+  .waffle td, .waffle th {
+    border:1px solid #a9a9a9;
+    text-align:center;
+    vertical-align:middle;
+    padding:6px 8px;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#202122;
+  }
+  .waffle th {
+    background:#eaecf0;
+    font-weight:bold;
+  }
+
+  .sSAFE    { background:#f8f9fa; }
+  .sWIN     { background:#00bfff; }
+  .sNOM     { background:#f5deb3; }
+  .sOUT     { background:#ff6347; }
+  .sWINNER  { background:#00ff00; font-weight:bold; }
+  .sLOSER   { background:#87ceeb; font-weight:bold; }
+  .sDEAD    { background:#a9a9a9; }
+
+.team-cell {
+  width:4px !important;
+  padding:0;
+}
+
+  .ritz .grid-container {
+    display:inline-block;
+    max-width:100%;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow:auto;
+    padding:12px;
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+  <h1>Season Chart</h1>
+  <div id="msg" class="notice" style="display:none;"></div>
+
+  <div class="ritz grid-container" dir="ltr">
+    <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const KEY = "challenge-bots2-season";
+const tbl = document.getElementById("chart");
+const msg = document.getElementById("msg");
+
+function readState() {
+  const tryGet = (store) => { try { return store.getItem(KEY); } catch { return null; } };
+  let raw = tryGet(sessionStorage) || tryGet(localStorage);
+  if (!raw && window.opener) {
+    try { raw = window.opener.sessionStorage.getItem(KEY) || window.opener.localStorage.getItem(KEY); } catch {}
+  }
+  if (!raw && location.hash.length > 1) {
+    const h = decodeURIComponent(location.hash.slice(1));
+    try { raw = atob(h); } catch { raw = h; }
+  }
+  try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+
+const state = readState();
+if (!state || !state.episodes || !state.castMen || !state.castWomen) {
+  msg.style.display = "block";
+  msg.textContent = 'No season found. Open the simulator and click "Season Chart" after simulating.';
+  return;
+}
+
+const roster = []
+  .concat((state.castWomen||[]).filter(Boolean))
+  .concat((state.castMen||[]).filter(Boolean));
+
+const byId = Object.fromEntries(roster.map(p => [p.id, p]));
+
+const nameOf = id =>
+  byId[id] ? (byId[id].nickname || byId[id].name || id) : id;
+
+function teamColor(pid){
+  const p = byId[pid];
+  if (!p) return "#ffffff";
+  return p.gender === "female" ? "#ffc0cb" : "#add8e6";
+}
+
+const placements = state.placements || {};
+const femaleFinal = [placements.winners?.female, placements.second?.female, placements.third?.female].filter(Boolean);
+const maleFinal   = [placements.winners?.male,   placements.second?.male,   placements.third?.male].filter(Boolean);
+
+let winnerGender;
+if (femaleFinal.includes(placements.winners?.female)) winnerGender = "female";
+else winnerGender = "male";
+
+let winnersList = [];
+let losersList  = [];
+
+if (winnerGender === "female"){
+  winnersList = femaleFinal;
+  losersList  = maleFinal;
+} else {
+  winnersList = maleFinal;
+  losersList  = femaleFinal;
+}
+
+const elimArr = Array.isArray(placements.eliminated) ? placements.eliminated.slice() : [];
+elimArr.sort((a,b) => (b.episode||0) - (a.episode||0));
+
+const eliminatedIds = elimArr.map(e => e.id);
+
+const everyone = roster.map(p => p.id);
+const finalists = winnersList.concat(losersList);
+const remaining = everyone.filter(id => !finalists.includes(id) && !eliminatedIds.includes(id));
+
+const rowOrder = []
+  .concat(winnersList)
+  .concat(losersList)
+  .concat(elimArr.map(e => e.id))
+  .concat(remaining);
+
+const EP_FIRST = 1;
+const EP_LAST  = 16;
+
+function getEpisodeLabel(ep, pid){
+  const E = state.episodes[ep];
+  if (!E) return "SAFE";
+
+  if (elimArr.find(e => e.id === pid && e.episode === ep)) return "OUT";
+
+  if (ep === 16){
+    if (winnersList.includes(pid)) return "WINNER";
+    if (losersList.includes(pid))  return "LOSER";
+    return "SAFE";
+  }
+
+  const leaders = E.leaders || { female:[], male:[] };
+  const daily = E.daily || null;
+  const winnerTeam = daily?.winnerTeam || null;
+
+  const isLeaderFemale = leaders.female.includes(pid);
+  const isLeaderMale   = leaders.male.includes(pid);
+
+  const isLeader = isLeaderFemale || isLeaderMale;
+
+  if (isLeader){
+    if ((winnerTeam === "female" && isLeaderFemale) ||
+        (winnerTeam === "male" && isLeaderMale)) {
+      return "WIN";
+    } else {
+      return "NOM";
+    }
+  }
+
+  return "SAFE";
+}
+
+buildHeader(tbl);
+buildBody(tbl);
+
+function buildHeader(table){
+  const thead = document.createElement("thead");
+  const r = document.createElement("tr");
+
+  const th = t => {
+    const el = document.createElement("th");
+    el.textContent = t;
+    return el;
+  };
+
+// Team color column placeholder (empty th)
+const thColor = document.createElement("th");
+thColor.style.width = "8px"; // match the width of the TD
+r.appendChild(thColor);
+
+// Player header spanning both columns
+const thPlayer = document.createElement("th");
+thPlayer.colSpan = 1; // we already added the team color th above
+thPlayer.textContent = "Player";
+r.appendChild(thPlayer);
+
+  for (let ep = EP_FIRST; ep <= EP_LAST; ep++){
+    if (ep === 16) r.appendChild(th("Final"));
+    else r.appendChild(th("Ep " + ep));
+  }
+
+  thead.appendChild(r);
+  table.appendChild(thead);
+}
+
+function buildBody(table){
+  const tbody = document.createElement("tbody");
+
+  const td = (cls, txt) => {
+    const el = document.createElement("td");
+    el.className = cls;
+    el.textContent = txt || "";
+    return el;
+  };
+
+  rowOrder.forEach(pid => {
+    if (!byId[pid]) return;
+
+    const tr = document.createElement("tr");
+    const col = document.createElement("td");
+    col.className = "team-cell";
+    col.style.background = teamColor(pid);
+    tr.appendChild(col);
+    tr.appendChild(td("sSAFE", nameOf(pid)));
+    let dead = false;
+
+    for (let ep = EP_FIRST; ep <= EP_LAST; ep++){
+      let label = "SAFE";
+
+      if (dead){
+        tr.appendChild(td("sDEAD",""));
+        continue;
+      }
+
+      label = getEpisodeLabel(ep, pid);
+
+      let cls = "sSAFE";
+      switch(label){
+        case "WIN":    cls = "sWIN"; break;
+        case "NOM":    cls = "sNOM"; break;
+        case "OUT":    cls = "sOUT"; dead = true; break;
+        case "WINNER": cls = "sWINNER"; break;
+        case "LOSER":  cls = "sLOSER"; break;
+      }
+
+      tr.appendChild(td(cls, label));
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+}
+
+})();
+</script>
+
+</body>
+</html>

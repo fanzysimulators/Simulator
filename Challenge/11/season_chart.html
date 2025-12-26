@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — The Challenge: Gauntlet 2</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#1a2233; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .muted { opacity:.85; font-weight:300; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* Google Sheets-like skin (wrapped text) — identical feel; borders now #a9a9a9 */
+  .s0{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s1{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s3{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#00bfff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s5{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#008000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s6{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#00ff00;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s8{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#87ceeb;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s10{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffa500;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s11{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ff6347;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s12{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#a9a9a9;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+
+  /* Requested label styles */
+  .sWON{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffff00;text-align:center;font-weight:normal;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .sSAFE{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#f8f9fa;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+
+  /* Container */
+  .ritz .grid-container {
+    display: inline-block;
+    max-width: 100%;
+    background: var(--panel);
+    border: 1px solid #a9a9a9; /* spreadsheet frame border per request */
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow: auto;
+  }
+  table.waffle { border-collapse: collapse; table-layout: auto; width: auto; }
+  .swatch { border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9; width:18px; min-width:18px; padding:0; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const KEY = "challenge-gauntlet2-season";
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+  const EPISODES = 16; // 16 total
+
+  function readState() {
+    const tryGet = (store) => { try { return store.getItem(KEY); } catch { return null; } };
+    let raw = tryGet(sessionStorage) || tryGet(localStorage);
+    if (!raw && window.opener) {
+      try { raw = window.opener.sessionStorage.getItem(KEY) || window.opener.localStorage.getItem(KEY); } catch {}
+    }
+    if (!raw && location.hash.length > 1) {
+      const h = decodeURIComponent(location.hash.slice(1));
+      try { raw = atob(h); } catch { raw = h; }
+    }
+    try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+  }
+
+  const state = readState();
+  if (!state || !state.episodes) {
+    msg.style.display = "block";
+    msg.textContent = 'No Gauntlet 2 season found. Open the simulator, simulate, then click "Season Chart".';
+    return;
+  }
+
+  // Player index
+  const castBlue = (state.castBlue || []).filter(Boolean);
+  const castRed  = (state.castRed  || []).filter(Boolean);
+  const allCast  = castBlue.concat(castRed);
+  const byId = Object.fromEntries(allCast.map(p => [p.id, p]));
+
+  const nicknameOf = (pid) => {
+    const p = byId[pid]; return p ? (p.nickname || p.name || pid) : pid;
+  };
+  const teamOf = (pid) => castBlue.some(c => c.id===pid) ? "blue" : (castRed.some(c => c.id===pid) ? "red" : null);
+  const teamColor = (pid) => teamOf(pid)==="blue" ? "#0000ff" : "#ff0000";
+
+  // Row ordering: winners team → second team → eliminated (Ep15 first to earliest)
+  const placements = state.placements || { eliminated: [] };
+  const res = state.episodes[16] && state.episodes[16].finals && state.episodes[16].finals.results;
+  const status16 = state.episodes[16] && state.episodes[16].status;
+  const aliveBlue16 = (status16 && status16.blue) ? status16.blue.slice() : (state.alive && state.alive.blue ? state.alive.blue.slice() : []);
+  const aliveRed16  = (status16 && status16.red ) ? status16.red.slice()  : (state.alive && state.alive.red  ? state.alive.red.slice()  : []);
+
+  let winnersBlock = [], losersBlock = [];
+  if (res && res.winnersTeam && res.secondTeam) {
+    winnersBlock = (res.winnersTeam === "blue") ? aliveBlue16 : aliveRed16;
+    losersBlock  = (res.secondTeam  === "blue") ? aliveBlue16 : aliveRed16;
+  } else {
+    winnersBlock = aliveBlue16.concat(aliveRed16);
+  }
+
+  const eliminatedChrono = (placements.eliminated || []).slice();
+  eliminatedChrono.sort((a,b) => b.episode - a.episode);
+  const eliminatedIds = eliminatedChrono.map(e => e.playerId);
+
+  const rowOrder = [].concat(winnersBlock).concat(losersBlock).concat(eliminatedIds);
+
+  // Episode ledger
+  const ledger = state.chart && state.chart.episodes ? state.chart.episodes : {};
+
+  function td(cls, text, attrs={}){
+    const el = document.createElement('td');
+    el.className = cls;
+    if (text != null) el.textContent = text;
+    if (attrs.colspan) el.colSpan = attrs.colspan;
+    return el;
+  }
+
+  function buildHeader(table){
+    const thead = document.createElement('thead');
+    const r = document.createElement('tr');
+    // "Player" spanning 2 columns (name + color)
+    r.appendChild(td('s0','Player',{colspan:2}));
+    for(let e=1;e<=EPISODES-1;e++) r.appendChild(td('s0','Ep '+e));
+    r.appendChild(td('s0','Finale'));
+    thead.appendChild(r);
+    table.appendChild(thead);
+  }
+
+  function wasEliminatedByEp(pid, ep){
+    for (let e=2; e<=ep; e++){
+      const L = ledger[String(e)];
+      if (L && L.elimLoser === pid) return true;
+    }
+    return false;
+  }
+
+  function labelForEpisode(pid, ep){
+    if (ep === 1){
+      const D = state.episodes[1] && state.episodes[1].daily;
+      if (D && D.captains){
+        const cap = D.captains;
+        if (pid === cap.blue.male || pid === cap.blue.female || pid === cap.red.male || pid === cap.red.female){
+          return { text:'WON', cls:'sWON' };
+        }
+      }
+      return { text:'SAFE', cls:'sSAFE' };
+    }
+
+    if (wasEliminatedByEp(pid, ep-1)) return { text:'', cls:'s12' };
+
+    const E = ledger[String(ep)] || {};
+    const myTeam = teamOf(pid);
+    if (!myTeam) return { text:'', cls:'s12' };
+
+    if (E.elimLoser === pid) return { text:'OUT', cls:'s11' };
+    if (E.elimWinner === pid) return { text:'ELIM', cls:'s5' };
+
+    if (E.dailyWinner === myTeam) return { text:'WIN', cls:'s3' };
+
+    if (E.votingTeam === myTeam) return { text:'SAFE', cls:'sSAFE' };
+
+    return { text:'SAFE', cls:'sSAFE' };
+  }
+
+  function labelForFinale(pid){
+    if (wasEliminatedByEp(pid, 15)) return { text:'', cls:'s12' };
+    const results = state.episodes[16] && state.episodes[16].finals && state.episodes[16].finals.results;
+    if (!results) return { text:'', cls:'s12' };
+    const myTeam = teamOf(pid);
+    if (myTeam === results.winnersTeam) return { text:'WINNER', cls:'s6' };
+    if (myTeam === results.secondTeam)  return { text:'LOSER',  cls:'s8' };
+    return { text:'', cls:'s12' };
+  }
+
+  function buildBody(table){
+    const tbody = document.createElement('tbody');
+
+    rowOrder.forEach((pid) => {
+      const p = byId[pid]; if (!p) return;
+      let eliminated = false;
+
+      const tr = document.createElement('tr');
+      const nameCell = td('s1', nicknameOf(pid));
+      nameCell.style.textAlign = 'center'; // center names
+      tr.appendChild(nameCell);
+
+      const colorCell = document.createElement('td');
+      colorCell.className = 'swatch';
+      colorCell.style.backgroundColor = teamColor(pid);
+      tr.appendChild(colorCell);
+
+      for (let e=1; e<=15; e++){
+        if (eliminated){
+          tr.appendChild(td('s12',''));
+          continue;
+        }
+        const lab = labelForEpisode(pid, e);
+        tr.appendChild(td(lab.cls, lab.text));
+        if (lab.text === 'OUT') eliminated = true;
+      }
+
+      if (eliminated){
+        tr.appendChild(td('s12',''));
+      } else {
+        const fin = labelForFinale(pid);
+        tr.appendChild(td(fin.cls, fin.text));
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+  }
+
+  buildHeader(tbl);
+  buildBody(tbl);
+})();
+</script>
+</body>
+</html>

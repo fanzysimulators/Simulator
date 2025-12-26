@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — War of the Worlds</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#1a2233; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1400px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* Google Sheets-like skin (keep same bare look) */
+  .s0{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* header */
+  .s1{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#f8f9fa;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SAFE (default) */
+  .s2{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#000000;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* Team color cell (bg overridden inline) */
+
+  .s3{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#00bfff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WIN (tribunal) */
+  .s7{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#ffff00;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WON (purge winner Ep1) */
+  .s4{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#f5deb3;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* NOM */
+  .s5{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#008000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* ELIM (won elim) */
+  .s11{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#ff6347;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* OUT */
+  .s9{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#ffc0cb;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SAFE (Relic) */
+  .s10{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#00ffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WIN (Relic + Tribunal) */
+  .s6{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#00ff00;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WINNER */
+  .s8{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#87ceeb;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SECOND/THIRD/FOURTH */
+  .s14{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#ff9900;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* FIFTH–EIGHTH */
+  .s13{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#800000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* LAST (purged) */
+  .s12{border-bottom:1px SOLID #d9d9d9;border-right:1px SOLID #d9d9d9;background-color:#d9d9d9;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* post-OUT gray */
+
+  .ritz .grid-container {
+    display: inline-block;
+    max-width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow: auto;
+  }
+
+  table.waffle {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: auto;
+
+
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0">
+  <colgroup>
+    <col style="width: 170px;">  <!-- Nicknames -->
+    <col style="width: 10px;">   <!-- Team strip (thin) -->
+    <col span="15" style="width: 52px;"> <!-- Episodes -->
+  </colgroup>
+</table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const KEY = "challenge-wotw-season";
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+  const EP_MAX = 15; // Ep 1..15
+
+  function readState(){
+    try { return JSON.parse(sessionStorage.getItem(KEY)||localStorage.getItem(KEY)||"null"); }
+    catch { return null; }
+  }
+
+  const state = readState();
+  if(!state || !state.episodes){
+    msg.style.display = "block";
+    msg.textContent = 'No season found. Open the simulator and generate a season first.';
+    return;
+  }
+
+  const cast = Array.isArray(state.cast) ? state.cast.filter(Boolean) : [];
+  const byId = Object.fromEntries(cast.map(p => [p.id, p]));
+  const players = (state.players || cast).map(p => (typeof p === 'string' ? p : p.id)).filter(Boolean);
+
+  function nameOf(id){
+    const p = byId[id];
+    if(p) return p.nickname || p.name || id;
+    const fromPlayers = (state.players||[]).find(x => x && x.id === id);
+    return (fromPlayers && (fromPlayers.nickname || fromPlayers.name)) || id;
+  }
+
+  function E(ep){ return state.episodes[ep] || state.episodes[String(ep)] || {}; }
+
+  // ---- Team colours (fixed from Episode 2 status) ----
+  const teamColour = {};
+  (E(2).status || []).forEach(row => {
+    if(Array.isArray(row) && row.length >= 3){
+      const a = row[0], b = row[1], col = row[2];
+      if(a) teamColour[a] = col || "#000000";
+      if(b) teamColour[b] = col || "#000000";
+    }
+  });
+
+  // ---- Helpers ----
+  function pairKey(p){ return p ? (p.prospect + "|" + p.vet) : ""; }
+  function pairHas(pid, p){ return !!(p && (p.prospect === pid || p.vet === pid)); }
+
+  // Safe due to relic (computed from previous episode's elimination winner)
+  const relicSafe = {}; // relicSafe[ep] = Set(pids)
+  function addRelicSafe(ep, pids){
+    if(!relicSafe[ep]) relicSafe[ep] = new Set();
+    (pids||[]).filter(Boolean).forEach(pid => relicSafe[ep].add(pid));
+  }
+
+  for(let ep=2; ep<=9; ep++){
+    const prev = E(ep-1);
+    // Team episode relic comes from team elimination winner at previous ep
+    if(prev && prev.elim){
+      if(prev.elim.special){
+        // Ep4 special: maleWinner + femaleWinner form new pair with relic next episode
+        addRelicSafe(ep, [prev.elim.maleWinner, prev.elim.femaleWinner]);
+      }else if(prev.elim.winner){
+        addRelicSafe(ep, [prev.elim.winner.prospect, prev.elim.winner.vet]);
+      }
+    }
+  }
+  // Transition relic into Episode 10 (from Episode 9 winner)
+  const ep9 = E(9);
+  if(ep9 && ep9.elim){
+    if(ep9.elim.special) addRelicSafe(10, [ep9.elim.maleWinner, ep9.elim.femaleWinner]);
+    else if(ep9.elim.winner) addRelicSafe(10, [ep9.elim.winner.prospect, ep9.elim.winner.vet]);
+  }
+
+  function isRelicSafe(pid, ep){
+    return !!(relicSafe[ep] && relicSafe[ep].has(pid));
+  }
+
+  // Elimination outcome checks
+  function elimStatus(pid, ep){
+    const el = E(ep).elim;
+    if(!el) return null;
+
+    if(el.special){
+      if(el.maleWinner === pid || el.femaleWinner === pid) return { t:"ELIM", cls:"s5" };
+      if((el.eliminated||[]).includes(pid)) return { t:"OUT", cls:"s11" };
+      return null;
+    }
+
+    if(el.winner && pairHas(pid, el.winner)) return { t:"ELIM", cls:"s5" };
+    if(el.loser  && pairHas(pid, el.loser))  return { t:"OUT",  cls:"s11" };
+    return null;
+  }
+
+  function elimStatusInd(pid, ep){
+    const el = E(ep).elim;
+    if(!el) return null;
+    if(el.winner === pid) return { t:"ELIM", cls:"s5" };
+    if(el.loser === pid)  return { t:"OUT",  cls:"s11" };
+    return null;
+  }
+
+  function purgeStatus(pid, ep){
+    const p = E(ep).purge;
+    if(!p) return null;
+
+    if((p.eliminated||[]).includes(pid)) return { t:"LAST", cls:"s13" };
+    if(ep === 1 && (p.winners||[]).includes(pid)) return { t:"WON", cls:"s7" };
+
+    // Otherwise just SAFE for purge episodes
+    return { t:"SAFE", cls:"s1" };
+  }
+
+  // Episode label logic
+  function epLabel(pid, ep){
+    // Purges
+    if(ep === 1 || ep === 14){
+      return purgeStatus(pid, ep) || { t:"SAFE", cls:"s1" };
+    }
+
+    // Final episode (placements)
+    if(ep === 15){
+      const e15 = E(15);
+      const finals = (e15.final && Array.isArray(e15.final.placements)) ? e15.final.placements : [];
+      const idx = finals.indexOf(pid);
+      if(idx === 0) return { t:"WINNER", cls:"s6" };
+      if(idx === 1) return { t:"SECOND",  cls:"s8" };
+      if(idx === 2) return { t:"THIRD",   cls:"s8" };
+      if(idx === 3) return { t:"FOURTH",  cls:"s8" };
+
+      const elim2 = (e15.elim2 && Array.isArray(e15.elim2.eliminated)) ? e15.elim2.eliminated : [];
+      const elim1 = (e15.elim1 && Array.isArray(e15.elim1.eliminated)) ? e15.elim1.eliminated : [];
+      if(elim2[0] === pid) return { t:"FIFTH",   cls:"s14" };
+      if(elim2[1] === pid) return { t:"SIXTH",   cls:"s14" };
+      if(elim1[0] === pid) return { t:"SEVENTH", cls:"s14" };
+      if(elim1[1] === pid) return { t:"EIGHTH",  cls:"s14" };
+
+      // Shouldn't happen, but keep SAFE if still present
+      return { t:"SAFE", cls:"s1" };
+    }
+
+    // Team phase (2–9)
+    if(ep >= 2 && ep <= 9){
+      const e = E(ep);
+
+      // OUT / ELIM override
+      const es = elimStatus(pid, ep);
+      if(es) return es;
+
+      // WIN: in tribunal
+      const tribunalPairs = (e.daily && Array.isArray(e.daily.tribunal)) ? e.daily.tribunal : [];
+      const inTrib = tribunalPairs.some(t => (t && (t.prospect === pid || t.vet === pid)));
+      if(inTrib){
+        // Special WIN colour if relic-safe this episode
+        return isRelicSafe(pid, ep) ? { t:"WIN", cls:"s10" } : { t:"WIN", cls:"s3" };
+      }
+
+      // NOM: nominated by tribunal but did not play elimination
+      const noms = Array.isArray(e.nominations) ? e.nominations : [];
+      const nominatedPairs = [];
+      noms.forEach(n => { if(n && n.target){ nominatedPairs.push(n.target); } });
+      const uniqKeys = new Set();
+      const uniq = [];
+      nominatedPairs.forEach(p => {
+        const k = pairKey(p);
+        if(k && !uniqKeys.has(k)){ uniqKeys.add(k); uniq.push(p); }
+      });
+
+      const nominatedTeam = e.killing && e.killing.nominatedTeam ? e.killing.nominatedTeam : null;
+      const nomKeys = new Set(uniq.map(pairKey));
+      const nominatedKey = pairKey(nominatedTeam);
+
+      // In special (ep4) everyone in those teams played, so NOM doesn't apply
+      if(!(e.elim && e.elim.special)){
+        const isInNomPair = uniq.some(p => pairHas(pid, p));
+        const isInChosen  = nominatedTeam ? pairHas(pid, nominatedTeam) : false;
+        // Nominated by tribunal but didn't play in the elimination
+        if(isInNomPair && !isInChosen){
+          return { t:"NOM", cls:"s4" };
+        }
+      }
+
+      // SAFE due to relic
+      if(isRelicSafe(pid, ep)) return { t:"SAFE", cls:"s9" };
+
+      return { t:"SAFE", cls:"s1" };
+    }
+
+    // Individual phase (10–13)
+    if(ep >= 10 && ep <= 13){
+      const e = E(ep);
+
+      // OUT / ELIM override
+      const es = elimStatusInd(pid, ep);
+      if(es) return es;
+
+      // WIN: tribunal
+      const tribunal = (e.daily && Array.isArray(e.daily.tribunal)) ? e.daily.tribunal : [];
+      const inTrib = tribunal.includes(pid);
+      if(inTrib){
+        return isRelicSafe(pid, ep) ? { t:"WIN", cls:"s10" } : { t:"WIN", cls:"s3" };
+      }
+
+      // NOM: nominated by tribunal but did not go in
+      const nominees = (e.nominations && Array.isArray(e.nominations.nominees)) ? e.nominations.nominees : [];
+      const nominated = e.killing && e.killing.nominated ? e.killing.nominated : null;
+      if(nominees.includes(pid) && pid !== nominated){
+        return { t:"NOM", cls:"s4" };
+      }
+
+      // SAFE due to relic
+      if(isRelicSafe(pid, ep)) return { t:"SAFE", cls:"s9" };
+
+      return { t:"SAFE", cls:"s1" };
+    }
+
+    // Fallback
+    return { t:"SAFE", cls:"s1" };
+  }
+
+  // ---- Placement ordering (1..34, with ties per elimination batch) ----
+  function eliminatedBatch(ep){
+    const e = E(ep);
+    if(ep === 1 || ep === 14){
+      return (e.purge && Array.isArray(e.purge.eliminated)) ? e.purge.eliminated.slice() : [];
+    }
+    if(ep >= 2 && ep <= 9){
+      const el = e.elim;
+      if(!el) return [];
+      if(el.special) return (el.eliminated||[]).slice();
+      if(el.loser) return [el.loser.prospect, el.loser.vet].filter(Boolean);
+      return [];
+    }
+    if(ep >= 10 && ep <= 13){
+      const el = e.elim;
+      return el && el.loser ? [el.loser] : [];
+    }
+    if(ep === 15){
+      const e15 = E(15);
+      const out = [];
+      if(e15.elim1 && Array.isArray(e15.elim1.eliminated)) out.push(...e15.elim1.eliminated);
+      if(e15.elim2 && Array.isArray(e15.elim2.eliminated)) out.push(...e15.elim2.eliminated);
+      return out.filter(Boolean);
+    }
+    return [];
+  }
+
+  const placement = {}; // pid -> {start,end}
+  let rank = players.length; // should be 34
+
+  // Go backwards from last elimination to first for placements bottom-up
+  // Use episode order, but split final into elim1 then elim2 (elim2 happens after elim1, so elim2 is "more recent")
+  const eliminationSequence = [];
+  for(let ep=1; ep<=14; ep++){
+    const batch = eliminatedBatch(ep);
+    if(batch.length) eliminationSequence.push({ ep, batch });
+  }
+  // Final: elim1 then elim2
+  const e15 = E(15);
+  const b15a = (e15.elim1 && Array.isArray(e15.elim1.eliminated)) ? e15.elim1.eliminated.slice() : [];
+  const b15b = (e15.elim2 && Array.isArray(e15.elim2.eliminated)) ? e15.elim2.eliminated.slice() : [];
+  if(b15a.length) eliminationSequence.push({ ep: 15.1, batch: b15a });
+  if(b15b.length) eliminationSequence.push({ ep: 15.2, batch: b15b });
+
+  // Assign from bottom: process sequence in chronological order, but we want earliest eliminated to get lowest rank numbers (33/34 etc),
+  // easiest is iterate sequence in chronological order while decrementing rank.
+  eliminationSequence.forEach(item => {
+    const batch = item.batch.filter(Boolean);
+    const end = rank;
+    const start = rank - batch.length + 1;
+    batch.forEach(pid => { placement[pid] = { start, end }; });
+    rank -= batch.length;
+  });
+
+  // Survivors placements from final order
+  const finals = (E(15).final && Array.isArray(E(15).final.placements)) ? E(15).final.placements : [];
+  finals.forEach((pid, idx) => {
+    placement[pid] = { start: idx+1, end: idx+1 };
+  });
+
+  function placeLabel(p){
+    if(!p) return "";
+    if(p.start === p.end) return ordinal(p.start);
+    if(p.end === p.start + 1) return ordinal(p.start) + "/" + ordinal(p.end);
+    return ordinal(p.start) + "–" + ordinal(p.end);
+  }
+
+  // Row order: 1st → 34th (ties preserved by start)
+  const rowOrder = players.slice().sort((a,b) => {
+    const pa = placement[a] ? placement[a].start : 9999;
+    const pb = placement[b] ? placement[b].start : 9999;
+    if(pa !== pb) return pa - pb;
+    return nameOf(a).localeCompare(nameOf(b));
+  });
+
+  // Render helpers
+  function td(cls, text){
+    const el = document.createElement('td');
+    el.className = cls;
+    if(text != null) el.textContent = text;
+    return el;
+  }
+
+function buildHeader(table){
+  const thead = document.createElement('thead');
+  const r = document.createElement('tr');
+  r.appendChild(td('s0','Contestants'));
+  for(let e=1;e<=EP_MAX;e++) r.appendChild(td('s0','Ep ' + e));
+  thead.appendChild(r);
+  table.appendChild(thead);
+}
+
+  function buildBody(table){
+    const tbody = document.createElement('tbody');
+
+    rowOrder.forEach(pid => {
+      const tr = document.createElement('tr');
+
+// Nickname (with team color stripe on the left)
+const col = teamColour[pid] || "#000000";
+const nick = td('s1', nameOf(pid));
+nick.style.borderLeft = "10px solid " + col;  // team stripe (thin)
+nick.style.paddingLeft = "8px";
+tr.appendChild(nick);
+
+      // Episode cells + post-out greying
+      let eliminatedAt = 0;
+
+      for(let ep=1; ep<=EP_MAX; ep++){
+        if(eliminatedAt && ep > eliminatedAt){
+          tr.appendChild(td('s12',''));
+          continue;
+        }
+
+        const lab = epLabel(pid, ep);
+        tr.appendChild(td(lab.cls, lab.t));
+
+        // Determine elimination moment for greying:
+        // OUT or LAST ends their run that episode
+        if(lab.t === "OUT" || lab.t === "LAST"){
+          eliminatedAt = ep;
+        }
+
+        // Final eliminations also end run (FIFTH–EIGHTH)
+        if(ep === 15 && (lab.t === "FIFTH" || lab.t === "SIXTH" || lab.t === "SEVENTH" || lab.t === "EIGHTH")){
+          eliminatedAt = ep;
+        }
+      }
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+  }
+
+  // Ordinals
+  function ordinal(n){
+    n = Number(n);
+    if(!isFinite(n)) return String(n);
+    const s=["th","st","nd","rd"], v=n%100;
+    return n+(s[(v-20)%10]||s[v]||s[0]);
+  }
+
+  // Render
+  tbl.innerHTML = '';
+  buildHeader(tbl);
+  buildBody(tbl);
+})();
+</script>
+</body>
+</html>

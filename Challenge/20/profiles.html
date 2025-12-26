@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Profiles — The Challenge: Cutthroat</title>
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./style.css" />
+
+<style>
+  .skills-grid { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(240px, 1fr)); }
+  @media (max-width: 900px){ .skills-grid { grid-template-columns: 1fr; } }
+
+  .skill-card {
+    display: grid; gap: 8px; padding: 12px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)), rgba(255,255,255,.06);
+    backdrop-filter: blur(8px);
+  }
+  .skill-title { font-weight: 600; letter-spacing: .2px; }
+  .skill-desc  { font-size: .82rem; color: var(--muted); line-height: 1.25; }
+
+  .neo-select{
+    --glow: rgba(106,169,255,.28);
+    position:relative; width:100%; border-radius:12px; padding:1px;
+    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
+    box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset, 0 0 18px var(--glow);
+    transition: box-shadow .25s ease, transform .2s ease; backdrop-filter: blur(var(--panel-blur));
+  }
+  .neo-select:focus-within{ box-shadow: 0 0 0 1px rgba(255,255,255,.12) inset, 0 0 26px var(--glow); transform: translateY(-1px); }
+  .neo-select select{
+    appearance:none; -webkit-appearance:none; width:100%;
+    border:none; outline:none; border-radius:10px;
+    padding:12px 44px 12px 14px;
+    font-weight:600; color:var(--text);
+    background: rgba(255,255,255,.06);
+    transition: background-color .25s ease, color .25s ease, box-shadow .2s ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.12);
+  }
+  .neo-select::after{
+    content:""; position:absolute; right:12px; top:50%; width:14px; height:14px; pointer-events:none; transform: translateY(-50%);
+    background-image: url('data:image/svg+xml;utf8,<svg width="14" height="14" viewBox="0 0 24 24" fill="%23ffffff" xmlns="http://www.w3.org/2000/svg"><path opacity="0.9" d="M7 10l5 5 5-5"/></svg>');
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); opacity:.9;
+  }
+
+  .focus-avatar-wrap { display: grid; justify-items: center; gap: 8px; margin-bottom: 8px; }
+  .focus-name { font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="bg fx-nebula" aria-hidden="true"></div>
+  <div class="bg fx-hex" aria-hidden="true"></div>
+  <div class="bg fx-circuit" aria-hidden="true"></div>
+  <div class="bg fx-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo-dot" aria-hidden="true"></span>
+      <h1>The Challenge — Cutthroat</h1>
+    </div>
+    <nav class="top-nav" aria-label="Primary">
+      <a class="btn nav" href="./index.html">Back to Simulator</a>
+      <button class="btn" id="btn-reset-session" type="button">Reset Season</button>
+    </nav>
+  </header>
+
+  <div class="page-shell antm-shell">
+    <aside class="sidebar left">
+      <div class="panel">
+        <h3>Profiles</h3>
+
+        <div class="focus-avatar-wrap">
+          <img id="focus-avatar" class="avatar ring" src="./BlankProfile.webp" alt="">
+          <div id="focus-name" class="focus-name">Contestant</div>
+        </div>
+        <div class="filter" style="justify-content:center; margin-bottom:10px;">
+          <select id="focus" aria-label="Choose focal contestant"></select>
+        </div>
+
+        <div class="stack" style="justify-content:center; margin-bottom:10px;">
+          <button class="btn" id="prev" type="button">◀ Prev</button>
+          <button class="btn" id="next" type="button">Next ▶</button>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="stack" style="justify-content:center;">
+          <button class="btn" id="rand-player" type="button">Randomize Player</button>
+          <button class="btn" id="rand-all" type="button">Randomize Cast</button>
+          <button class="btn" id="reset-player" type="button">Reset Player</button>
+          <button class="btn" id="reset-all" type="button">Reset Cast</button>
+        </div>
+
+        <div class="sep"></div>
+        <div class="stack" style="justify-content:center;">
+          <a class="btn" href="./index.html">Back to Simulator</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section class="block">
+        <header class="block-head center">
+          <h2>Profiles</h2>
+          <p class="muted">Set skill tiers for each contestant. Values are saved for this session.</p>
+        </header>
+
+        <div id="no-cast" class="center-text" hidden>
+          <p class="muted">No cast found for this session. Go back and choose your cast first.</p>
+          <div class="stack" style="justify-content:center;">
+            <a class="btn" href="./index.html">Back</a>
+          </div>
+        </div>
+
+        <!-- Competition skills -->
+        <div class="block-head center"><h3>Competition Skills</h3></div>
+        <div id="skills-wrap" class="skills-grid"></div>
+
+        <!-- Social skills -->
+        <div class="sep"></div>
+        <div class="block-head center"><h3>Social Skills</h3></div>
+        <div id="social-wrap" class="skills-grid"></div>
+      </section>
+    </main>
+
+    <aside class="sidebar right">
+      <div class="panel">
+        <h3>Tier Scale</h3>
+        <ul class="bullet-list">
+          <li><strong>+3</strong> — Great</li>
+          <li><strong>+2</strong> — Really Good</li>
+          <li><strong>+1</strong> — Good</li>
+          <li><strong>0</strong> — Okay</li>
+          <li><strong>-1</strong> — Passable</li>
+          <li><strong>-2</strong> — Weak</li>
+          <li><strong>-3</strong> — Bad</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const KEY="challenge-cutthroat-season";
+    const State={
+      load(){ try{ return JSON.parse(sessionStorage.getItem(KEY)) || null; }catch{ return null; } },
+      save(s){ sessionStorage.setItem(KEY, JSON.stringify(s)); },
+      clear(){ sessionStorage.removeItem(KEY); }
+    };
+    const $ = s => document.querySelector(s);
+
+    function headerWire(){
+      $("#btn-reset-session").onclick = () => { State.clear(); location.href="./index.html"; };
+    }
+
+    let state = State.load() || null;
+    const COMP_SKILLS = [
+      ["balance",   "Balance",   "Core control on beams, ledges, and unstable surfaces."],
+      ["climbing",  "Climbing",  "Grip, footwork, rope/wall technique."],
+      ["eating",    "Eating",    "Speed and tolerance in eating tasks."],
+      ["endurance", "Endurance", "Stamina across long efforts and time."],
+      ["mental",    "Mental",    "Puzzles, memory, pattern recognition under pressure."],
+      ["speed",     "Speed",     "Short-burst pace, sprints, transitions."],
+      ["strength",  "Strength",  "Raw power in carries, drags, contact."],
+      ["swimming",  "Swimming",  "Water technique and transitions in/out."],
+      ["teamwork",  "Team Work", "Communication and in-pair coordination."]
+    ];
+
+    const SOCIAL_SKILLS = [
+      ["strategy",    "Strategy",    "Reads the house, plays votes, and positions themselves advantageously."],
+      ["temperament", "Temperament", "Emotional control and composure under stress and conflict."],
+      ["loyalty",     "Loyalty",     "Reliability as an ally vs. opportunism; perceived trustworthiness."]
+    ];
+
+    const TIERS = [3,2,1,0,-1,-2,-3];
+    const TIER_LABELS = {
+      3:"+3 Great", 2:"+2 Really Good", 1:"+1 Good", 0:"0 Okay",
+      "-1":"-1 Passable", "-2":"-2 Weak", "-3":"-3 Bad"
+    };
+    const TEMP_LABELS = {
+      3:"+3: Zen Master", 2:"+2: Diplomat", 1:"+1: Composed",
+      0:"0: Regular", "-1":"-1: Angered", "-2":"-2: Furious", "-3":"-3: Fuming"
+    };
+    const LOY_LABELS = {
+      3:"+3: Unshakeable Ally", 2:"+2: Devoted Partner", 1:"+1: Team Player",
+      0:"0: Pragmatic", "-1":"-1: Fair-Weather Friend", "-2":"-2: Cunning Manipulator", "-3":"-3: Agent of Chaos"
+    };
+
+    function ctCast(){
+      if(!state) return [];
+      if(Array.isArray(state.players) && state.players.length){
+        return state.players.slice();
+      }
+      if(!state.teams) return [];
+      var keys=["red","blue","grey"], out=[];
+      for(var i=0;i<keys.length;i++){
+        var k=keys[i];
+        var t=state.teams[k];
+        if(!t) continue;
+        var w=(t.women||[]).filter(Boolean);
+        var m=(t.men||[]).filter(Boolean);
+        out = out.concat(w,m);
+      }
+      return out;
+    }
+    function aliveCast(){ return ctCast().filter(Boolean); }
+    function aliveCastIds(){ return aliveCast().map(function(c){ return c.id; }).filter(Boolean); }
+    function findCastById(id){
+      var cast = ctCast();
+      for(var i=0;i<cast.length;i++){
+        var x = cast[i];
+        if(x && x.id===id) return x;
+      }
+      return null;
+    }
+    function nameOf(id){
+      var p = findCastById(id);
+      return p ? (p.nickname || p.name || id) : id;
+    }
+    function imgOf(id){
+      var p = findCastById(id);
+      return (p && p.image) || "./BlankProfile.webp";
+    }
+
+    function ensureProfilesEntry(pid){
+      if(!state.profiles) state.profiles = {};
+      if(!state.profiles[pid]) state.profiles[pid] = {};
+      [...COMP_SKILLS.map(s=>s[0]), ...SOCIAL_SKILLS.map(s=>s[0])].forEach((k)=>{
+        if (typeof state.profiles[pid][k] !== "number") state.profiles[pid][k] = 0;
+      });
+    }
+
+    function buildFocus(ids){
+      const sel = $("#focus");
+      sel.innerHTML = ids.map(id => `<option value="${id}">${nameOf(id)}</option>`).join("");
+      sel.onchange = ()=>{ updateFocusAvatar(); renderSkills(); renderSocial(); };
+    }
+
+    function updateFocusAvatar(){
+      const id = $("#focus").value;
+      $("#focus-avatar").src = imgOf(id);
+      $("#focus-name").textContent = nameOf(id);
+    }
+
+    function optionsHTML(labelsMap){
+      return TIERS.map(v => `<option value="${v}">${labelsMap[String(v)]}</option>`).join("");
+    }
+
+    function skillCardHTML(key, title, desc, labelsMap){
+      return `
+        <div class="skill-card">
+          <div class="skill-title">${title}</div>
+          <div class="skill-desc">${desc}</div>
+          <div class="neo-select">
+            <select data-skill="${key}">
+              ${optionsHTML(labelsMap)}
+            </select>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSkills(){
+      const id = $("#focus").value; if(!id) return;
+      ensureProfilesEntry(id);
+      const wrap = $("#skills-wrap");
+      wrap.innerHTML = "";
+      for(const [key, title, desc] of COMP_SKILLS){
+        const holder = document.createElement("div");
+        holder.innerHTML = skillCardHTML(key, title, desc, TIER_LABELS);
+        const card = holder.firstElementChild;
+        const select = card.querySelector("select");
+        select.value = String(state.profiles[id][key]);
+        select.addEventListener("change", ()=>{
+          state.profiles[id][key] = Number(select.value);
+          State.save(state);
+        });
+        wrap.appendChild(card);
+      }
+    }
+
+    function renderSocial(){
+      const id = $("#focus").value; if(!id) return;
+      ensureProfilesEntry(id);
+      const wrap = $("#social-wrap");
+      wrap.innerHTML = "";
+
+      {
+        const holder = document.createElement("div");
+        holder.innerHTML = skillCardHTML("strategy","Strategy","Reads the house, plays votes, and positions themselves advantageously.", TIER_LABELS);
+        const card = holder.firstElementChild;
+        const select = card.querySelector("select");
+        select.value = String(state.profiles[id]["strategy"]);
+        select.addEventListener("change", ()=>{
+          state.profiles[id]["strategy"] = Number(select.value);
+          State.save(state);
+        });
+        wrap.appendChild(card);
+      }
+      {
+        const holder = document.createElement("div");
+        holder.innerHTML = skillCardHTML("temperament","Temperament","Emotional control and composure under stress and conflict.", TEMP_LABELS);
+        const card = holder.firstElementChild;
+        const select = card.querySelector("select");
+        select.value = String(state.profiles[id]["temperament"]);
+        select.addEventListener("change", ()=>{
+          state.profiles[id]["temperament"] = Number(select.value);
+          State.save(state);
+        });
+        wrap.appendChild(card);
+      }
+      {
+        const holder = document.createElement("div");
+        holder.innerHTML = skillCardHTML("loyalty","Loyalty","Reliability as an ally vs. opportunism; perceived trustworthiness.", LOY_LABELS);
+        const card = holder.firstElementChild;
+        const select = card.querySelector("select");
+        select.value = String(state.profiles[id]["loyalty"]);
+        select.addEventListener("change", ()=>{
+          state.profiles[id]["loyalty"] = Number(select.value);
+          State.save(state);
+        });
+        wrap.appendChild(card);
+      }
+    }
+
+    function randomTier(){ return TIERS[Math.floor(Math.random()*TIERS.length)]; }
+
+    function randomizePlayer(){
+      const id = $("#focus").value; if(!id) return;
+      ensureProfilesEntry(id);
+      [...COMP_SKILLS.map(s=>s[0]), ...SOCIAL_SKILLS.map(s=>s[0])].forEach(k => state.profiles[id][k] = randomTier());
+      State.save(state); renderSkills(); renderSocial();
+    }
+    function randomizeAll(){
+      for(const pid of aliveCastIds()){
+        ensureProfilesEntry(pid);
+        [...COMP_SKILLS.map(s=>s[0]), ...SOCIAL_SKILLS.map(s=>s[0])].forEach(k => state.profiles[pid][k] = randomTier());
+      }
+      State.save(state); renderSkills(); renderSocial();
+    }
+    function resetPlayer(){
+      const id = $("#focus").value; if(!id) return;
+      ensureProfilesEntry(id);
+      [...COMP_SKILLS.map(s=>s[0]), ...SOCIAL_SKILLS.map(s=>s[0])].forEach(k => state.profiles[id][k] = 0);
+      State.save(state); renderSkills(); renderSocial();
+    }
+    function resetAll(){
+      for(const pid of aliveCastIds()){
+        ensureProfilesEntry(pid);
+        [...COMP_SKILLS.map(s=>s[0]), ...SOCIAL_SKILLS.map(s=>s[0])].forEach(k => state.profiles[pid][k] = 0);
+      }
+      State.save(state); renderSkills(); renderSocial();
+    }
+
+    function wireLeftBar(ids){
+      $("#prev").onclick = ()=>{
+        const cur=$("#focus").value; const i=ids.indexOf(cur);
+        $("#focus").value = ids[(i<=0 ? ids.length-1 : i-1)];
+        updateFocusAvatar(); renderSkills(); renderSocial();
+      };
+      $("#next").onclick = ()=>{
+        const cur=$("#focus").value; const i=ids.indexOf(cur);
+        $("#focus").value = ids[(i>=ids.length-1 ? 0 : i+1)];
+        updateFocusAvatar(); renderSkills(); renderSocial();
+      };
+      $("#rand-player").onclick = randomizePlayer;
+      $("#rand-all").onclick = randomizeAll;
+      $("#reset-player").onclick = resetPlayer;
+      $("#reset-all").onclick = resetAll;
+    }
+
+    function init(){
+      headerWire();
+      if(!state || ctCast().length===0){
+        $("#no-cast").hidden = false;
+        return;
+      }
+      const ids = aliveCastIds();
+      buildFocus(ids);
+      $("#focus").value = ids[0] || "";
+      updateFocusAvatar();
+      renderSkills();
+      renderSocial();
+      wireLeftBar(ids);
+    }
+
+    init();
+  </script>
+</body>
+</html>

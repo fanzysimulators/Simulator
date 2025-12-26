@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — The Challenge: The Duel II</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#a9a9a9; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* Spreadsheet skin (centered, specific colors, border #a9a9a9) */
+  table.waffle { border-collapse: collapse; table-layout: auto; width: auto; }
+  .waffle td, .waffle th { border:1px solid #a9a9a9; text-align:center; vertical-align:middle; padding:6px 8px; font-family:Arial, Helvetica, sans-serif; }
+
+  .s0{ background-color:#eaecf0; font-weight:bold; color:#202122; }
+  .sSAFE{ background-color:#ffffff; color:#202122; }
+  .sWIN{ background-color:#00bfff; color:#202122; }
+  .sELIM{ background-color:#008000; color:#ffffff; }
+  .sOUT{ background-color:#ff6347; color:#202122; }
+  .sDEAD{ background-color:#a9a9a9; color:#202122; }
+  .sWINNER{ background-color:#00ff00; color:#202122; font-weight:bold; }
+  .sSECOND{ background-color:#87ceeb; color:#202122; font-weight:bold; }
+  .sTHIRD{ background-color:#87ceeb; color:#202122; font-weight:bold; }
+
+  .ritz .grid-container {
+    display:inline-block;
+    max-width:100%;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow:auto;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* Read the Duel II simulator state */
+  const KEY = "challenge-duel2-season";
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+
+  function readState() {
+    const tryGet = (store) => { try { return store.getItem(KEY); } catch { return null; } };
+    let raw = tryGet(sessionStorage) || tryGet(localStorage);
+    if (!raw && window.opener) {
+      try { raw = window.opener.sessionStorage.getItem(KEY) || window.opener.localStorage.getItem(KEY); } catch {}
+    }
+    if (!raw && location.hash.length > 1) {
+      const h = decodeURIComponent(location.hash.slice(1));
+      try { raw = atob(h); } catch { raw = h; }
+    }
+    try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+  }
+
+  const state = readState();
+  if (!state || !state.episodes || !state.castMen || !state.castWomen) {
+    msg.style.display = "block";
+    msg.textContent = 'No season found. Open the simulator and click "Season Chart" after simulating.';
+    return;
+  }
+
+  /* Index players by id (from the saved cast), prefer nickname */
+  const roster = []
+    .concat((state.castWomen||[]).filter(Boolean))
+    .concat((state.castMen||[]).filter(Boolean));
+
+  const byId = Object.fromEntries(roster.map(p => [p.id, p]));
+  const nameOf = (id) => {
+    const p = byId[id]; return p ? (p.nickname || p.name || id) : id;
+  };
+
+  /* Build row order: winners → second → third → eliminated ep10 → … → ep1 */
+  const placements = state.placements || {};
+  const winnerM = placements.winners?.male || null;
+  const winnerF = placements.winners?.female || null;
+  const secondM = placements.second?.male || null;
+  const secondF = placements.second?.female || null;
+  const thirdM  = placements.third?.male || null;
+  const thirdF  = placements.third?.female || null;
+
+  // Eliminations pushed with {id, episode}
+  const elimArr = Array.isArray(placements.eliminated) ? placements.eliminated.slice() : [];
+  elimArr.sort((a,b) => (b.episode||0) - (a.episode||0)); // ep10 first → earlier
+
+  const finalists = [winnerM, winnerF, secondM, secondF, thirdM, thirdF].filter(Boolean);
+  const eliminatedIds = elimArr.map(x => x.id);
+
+  // Remaining should be none (finalists already listed), but keep safe:
+  const everyone = roster.map(p => p.id);
+  const remaining = everyone.filter(id => !finalists.includes(id) && !eliminatedIds.includes(id));
+
+  const rowOrder = []
+    .concat(winnerM ? [winnerM] : [])
+    .concat(winnerF ? [winnerF] : [])
+    .concat(secondM ? [secondM] : [])
+    .concat(secondF ? [secondF] : [])
+    .concat(thirdM ? [thirdM] : [])
+    .concat(thirdF ? [thirdF] : [])
+    .concat(elimArr.map(e => e.id))   // already ep-desc
+    .concat(remaining);               // just in case
+
+  /* Derive episode labels from state.episodes */
+  const EP_FIRST = 1, EP_LAST = 11; // 1–9 daily + sel + elim; 10 sel + elim; 11 final
+  const episodes = state.episodes || {};
+
+  function epLabelData(ep, playerId) {
+    const E = episodes[ep];
+    if (!E) return "SAFE";
+    // Precedence: OUT > ELIM > WIN > SAFE
+    if (ep <= 9) {
+      const dailyWinners = (E.daily && Array.isArray(E.daily.winners)) ? E.daily.winners : [];
+      const muF = E.elimination?.matchups?.female || null;
+      const muM = E.elimination?.matchups?.male || null;
+
+      if (muF && (playerId === muF.loser)) return "OUT";
+      if (muM && (playerId === muM.loser)) return "OUT";
+
+      if (muF && (playerId === muF.winner)) return "ELIM";
+      if (muM && (playerId === muM.winner)) return "ELIM";
+
+      if (dailyWinners.indexOf(playerId) >= 0) return "WIN";
+
+      return "SAFE";
+    }
+    if (ep === 10) {
+      const muF = E.elimination?.matchups?.female || null;
+      const muM = E.elimination?.matchups?.male || null;
+
+      if (muF && (playerId === muF.loser)) return "OUT";
+      if (muM && (playerId === muM.loser)) return "OUT";
+
+      if (muF && (playerId === muF.winner)) return "ELIM";
+      if (muM && (playerId === muM.winner)) return "ELIM";
+
+      return "SAFE";
+    }
+    // ep 11 — final
+    if (ep === 11) {
+      if (playerId === winnerM || playerId === winnerF) return "WINNER";
+      if (playerId === secondM || playerId === secondF) return "SECOND";
+      if (playerId === thirdM  || playerId === thirdF ) return "THIRD";
+      return ""; // non-finalists get grey via "dead after OUT"
+    }
+    return "SAFE";
+  }
+
+  /* Build table */
+  buildHeader(tbl);
+  buildBody(tbl);
+
+  function buildHeader(table){
+    const thead = document.createElement('thead');
+    const r = document.createElement('tr');
+    r.appendChild(th('s0','Player'));
+    for(let e=EP_FIRST; e<=EP_LAST; e++){
+      r.appendChild(th('s0', e === 11 ? 'Final' : ('Ep ' + e)));
+    }
+    thead.appendChild(r);
+    table.appendChild(thead);
+  }
+  function th(cls, text){ const el = document.createElement('th'); el.className = cls; el.textContent = text; return el; }
+  function td(cls, text){ const el = document.createElement('td'); el.className = cls; el.textContent = (text==null?"":text); return el; }
+
+  function buildBody(table){
+    const tbody = document.createElement('tbody');
+
+    rowOrder.forEach(pid => {
+      if (!byId[pid]) return;
+      const tr = document.createElement('tr');
+      tr.appendChild(td('sSAFE', nameOf(pid)));
+
+      let dead = false;
+      for (let e=EP_FIRST; e<=EP_LAST; e++){
+        if (dead) { tr.appendChild(td('sDEAD','')); continue; }
+
+        const lab = epLabelData(e, pid);
+        const cellClass = toClass(lab);
+        tr.appendChild(td(cellClass, lab));
+
+        if (lab === "OUT") dead = true;
+      }
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+  }
+
+  function toClass(label){
+    switch(label){
+      case "WIN": return "sWIN";
+      case "SAFE": return "sSAFE";
+      case "ELIM": return "sELIM";
+      case "OUT": return "sOUT";
+      case "WINNER": return "sWINNER";
+      case "SECOND": return "sSECOND";
+      case "THIRD": return "sTHIRD";
+      case "": return "sDEAD";
+      default: return "sSAFE";
+    }
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Challenge: Final Reckoning</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  :root{
+    --glass: rgba(20,22,30,.68);
+    --glass-border: rgba(120,130,155,.35);
+    --gold: #f7d26b;
+    --silver: #cfd8dc;
+    --bronze: #cd7f32;
+    --red: #ff5252;
+  }
+  html,body,button,select,input,dialog{font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  .page-shell .content{display:flex;flex-direction:column;align-items:center}
+  .block{width:100%;max-width:1100px}
+  .center{text-align:center}
+  .muted{opacity:.85;font-weight:300}
+  .actions-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  #ep-actions{margin-top:16px}
+  .btn[disabled]{opacity:.55;pointer-events:none}
+  .simulate{padding:14px 22px;font-weight:600;font-size:1.05rem}
+  .glow-green{box-shadow:0 0 0 2px #00d084 inset,0 0 22px rgba(0,208,132,.55)!important}
+  .glow-red{box-shadow:0 0 0 2px #ff5252 inset,0 0 22px rgba(255,82,82,.55)!important}
+  .glow-gold{box-shadow:0 0 0 2px var(--gold) inset,0 0 26px rgba(247,210,107,.65)!important}
+  .glow-white{box-shadow:0 0 0 2px #fff inset,0 0 22px rgba(255,255,255,.55)!important}
+  .teams-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+  .teams-row{display:flex;gap:14px;justify-content:center;width:100%}
+  .pick-card{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:14px;background:var(--glass);border:3px solid var(--glass-border);box-shadow:var(--soft-shadow);min-height:220px;text-align:center;width:520px;box-sizing:border-box}
+  .pick-card .pick-head{display:flex;justify-content:center;gap:8px;align-items:center}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  .slot{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:flex-start}
+  .avatar{width:72px;height:72px;border-radius:50%;object-fit:cover}
+  .slot select{width:220px;max-width:100%;background:rgba(15,17,22,.9);border:1px solid var(--glass-border);color:#e9eefb;border-radius:10px;padding:9px 10px;outline:none;text-align:center}
+  .slot .slot-actions{display:flex;gap:6px}
+
+  .team-box{
+    display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:16px;
+    padding:12px;border-radius:16px;background:var(--glass);border:3px solid var(--glass-border);box-shadow:var(--soft-shadow);
+    min-width:280px;flex-wrap:wrap;
+  }
+  .member{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .member img{width:64px;height:64px;border-radius:50%;object-fit:cover}
+  .member .nm{font-size:.92rem;font-weight:600;text-align:center;max-width:140px}
+  .place-tag{margin-top:8px;font-size:.95rem;opacity:.95;font-weight:600;width:100%;text-align:center}
+  .team-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+  .even-grid{display:grid;gap:12px;justify-items:center}
+  .even-grid.cols-3{grid-template-columns:repeat(3,minmax(280px,1fr))}
+  .even-grid.cols-4{grid-template-columns:repeat(4,minmax(280px,1fr))}
+  .col-vertical{display:flex;flex-direction:column;gap:10px;align-items:center}
+
+  .wide-card{width:900px;max-width:100%;padding:12px;border-radius:14px;background:var(--glass);border:1px solid var(--glass-border);box-shadow:var(--soft-shadow);box-sizing:border-box;text-align:center}
+  .desc-card{width:900px;max-width:100%;padding:12px;border-radius:14px;background:rgba(20,22,30,.68);border:1px solid var(--glass-border);box-shadow:var(--soft-shadow);box-sizing:border-box;text-align:center}
+  .vote-card{width:900px;max-width:100%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--glass);border:1px solid var(--glass-border);text-align:center;box-sizing:border-box}
+  .matchup{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;padding:12px;border:1px solid var(--glass-border);border-radius:12px;width:900px;max-width:100%;background:var(--glass);margin-top:6px;box-sizing:border-box;text-align:center}
+  .events-grid{display:grid;grid-template-columns:repeat(2,minmax(360px,1fr));gap:12px;justify-items:stretch;align-items:stretch;width:900px;max-width:100%}
+  .event-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--glass-border);border-radius:12px;background:var(--glass);text-align:left;min-height:86px;box-sizing:border-box}
+  .event-item .picon{width:28px;height:28px;border-radius:50%;object-fit:cover;margin-top:2px}
+  .event-item .txt{line-height:1.35}
+  .draw-card{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .draw-mark{font-weight:700;margin-top:4px}
+  .bg.fx-nebula,.bg.fx-hex,.bg.fx-circuit,.bg.fx-glow{display:none}
+  header.site-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+  header .brand{display:flex;gap:10px;align-items:center}
+  header .brand h1{font-size:1.25rem;margin:0}
+  .top-nav .btn{margin-left:6px}
+  .sidebar.left,.sidebar.right{width:260px}
+  .page-shell{display:grid;grid-template-columns:260px 1fr 260px;gap:12px;padding:12px}
+  .panel{background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:10px}
+  .section-links{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .details-ep summary{cursor:pointer}
+  #filter-show.btn-like{appearance:none;-webkit-appearance:none;display:inline-block;padding:8px 12px;border-radius:10px;border:1px solid var(--glass-border);background:rgba(15,17,22,.9);color:#e9eefb;cursor:pointer;line-height:1;text-align:center}
+  #filter-show.btn-like:focus{outline:none;box-shadow:0 0 0 2px rgba(255,255,255,.15) inset}
+  #filter-show.btn-like option{background:#0f1116;color:#e9eefb}
+  #ep-content{display:flex;flex-direction:column;align-items:center;gap:12px}
+.actions-row{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:12px;
+  margin:16px 0;
+}
+#view-cast .actions-row{ margin-top:16px; margin-bottom:24px; }
+#ep-actions.actions-row{ margin-top:24px; }
+
+  .border-gold{border:3px solid var(--gold)!important}
+  .border-silver{border:3px solid var(--silver)!important}
+  .border-bronze{border:3px solid var(--bronze)!important}
+  .border-red{border:3px solid var(--red)!important}
+  .glow-silver{box-shadow:0 0 0 2px var(--silver) inset,0 0 26px rgba(207,216,220,.65)!important}
+  .glow-bronze{box-shadow:0 0 0 2px var(--bronze) inset,0 0 26px rgba(205,127,50,.65)!important}
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand"><span class="logo-dot"></span><h1>The Challenge: Final Reckoning</h1></div>
+    <nav class="top-nav" aria-label="Primary">
+      <a class="btn nav" href="../../index.html">Home</a>
+<button class="btn" id="btn-back-cast" type="button">Back to Cast Selection</button>
+      <button class="btn" id="btn-reset-session" type="button">Reset Season</button>
+    </nav>
+  </header>
+
+  <div class="page-shell antm-shell">
+    <aside class="sidebar left">
+      <div class="panel">
+        <h3>Episodes</h3>
+        <div id="episode-accordion"></div>
+      </div>
+      <div class="panel" id="stats-panel" style="margin-top:12px; display:none;">
+        <h3>Statistics</h3>
+        <div class="section-links center">
+          <button class="btn" id="goto-placements">Placements</button>
+          <button class="btn" id="goto-stats">Other Statistics</button>
+          <button class="btn" id="goto-chart">Open Season Chart</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content" id="view-root">
+      <!-- CAST -->
+      <section id="view-cast" class="block">
+        <header class="block-head center">
+          <h2>Choose Your Cast</h2>
+        </header>
+
+        <div id="data-warning" class="data-warning center" style="display:none;">
+          <strong>Player data not loaded.</strong><br/>Using a demo roster so you can proceed.
+        </div>
+
+        <div class="center" style="margin:6px 0 6px 0;">
+          <span>Choose Show:</span>
+          <select id="filter-show" class="btn-like" name="filter-show" aria-label="Filter by show" autocomplete="off"></select>
+        </div>
+
+        <div class="center" style="margin:6px 0; font-size:1.5rem;"><strong>Main Cast</strong></div>
+        <div class="teams-wrap" id="teams-wrap-main"></div>
+
+        <div class="center" style="margin:12px 0; font-size:1.5rem;">Mercenary Teams</div>
+        <div class="teams-wrap" id="teams-wrap-mercs"></div>
+
+        <div class="actions-row">
+          <button class="btn" id="btn-randomize" type="button">Randomize Cast</button>
+          <button class="btn" id="btn-reset-cast" type="button">Reset Cast</button>
+          <button class="btn" id="btn-profiles" type="button">Profiles</button>
+          <button class="btn" id="btn-relationships" type="button">Relationships</button>
+        </div>
+        <div class="actions-row">
+          <button class="btn simulate" id="btn-simulate" type="button">Simulate Season</button>
+        </div>
+      </section>
+
+      <!-- EPISODE VIEW -->
+      <section id="view-episode" class="block" hidden>
+        <header class="block-head center">
+          <h2 id="ep-title">Episode</h2>
+          <p class="muted" id="ep-subtitle"></p>
+        </header>
+        <div id="ep-content" class="center"></div>
+        <div id="ep-actions" class="actions-row"></div>
+      </section>
+    </main>
+
+    <aside class="sidebar right">
+      <div class="panel center">
+        <h3>Season Info</h3>
+        <ul class="bullet-list" id="season-info" style="text-align:center;">
+          <li>Teams: <span id="info-team-count">0</span></li>
+          <li>Seed: <span id="info-seed">—</span></li>
+          <li>Status: <span id="info-status">Not simulated</span></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <dialog id="times-panel">
+    <h3 class="center" style="margin:0 0 8px 0;">Cumulative Final Times</h3>
+    <div id="times-table" class="center"></div>
+    <div style="display:flex;justify-content:center;margin-top:10px;">
+      <button class="btn" id="times-close" type="button">Close</button>
+    </div>
+  </dialog>
+
+  <script src="../../player_data.js" defer></script>
+  <script src="./fr_daily_data.js" defer></script>
+  <script src="./fr_elimination_data.js" defer></script>
+  <script src="./fr_redemption_data.js" defer></script>
+  <script src="./fr_final_data.js" defer></script>
+  <script src="./events.js" defer></script>
+  <script src="./fr_sim.js" defer></script>
+
+</body>
+</html>

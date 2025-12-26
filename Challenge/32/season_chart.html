@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — The Challenge: Free Agents</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" />
+
+<!-- Use the SAME path as index.html so nicknames are available -->
+<script src="../../player_data.js" defer></script>
+
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#a9a9a9; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+
+  .s0{border-bottom:1px SOLID var(--border);border-right:1px SOLID var(--border);background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;padding:6px 8px;}
+  .s1,.s2,.sColor,.s3,.s4,.s5,.s6,.s7,.s8,.s11,.s12,.s13{border-bottom:1px SOLID var(--border);border-right:1px SOLID var(--border);text-align:center;font-family:Arial;font-size:10pt;vertical-align:middle;padding:6px 8px;}
+  .s1{background:#fff;color:#202122;}
+  .s2{background:#fff;color:#202122;}
+  .sColor{color:#202122;}
+  .s3{background:#00bfff;color:#202122;}   /* WIN */
+  .s4{background:#f5deb3;color:#202122;}   /* RISK */
+  .s5{background:#008000;color:#fff;}      /* ELIM */
+  .s6{background:#00ff00;color:#202122;font-weight:bold;} /* WINNER (explicit green) */
+  .s7{background:#ffff00;color:#202122;}   /* WON (purge winner) */
+  .s8{background:#87ceeb;color:#202122;font-weight:bold;} /* SECOND/THIRD/FOURTH */
+  .s11{background:#ff6347;color:#202122;}  /* OUT */
+  .s12{background:#a9a9a9;color:#202122;}  /* blank gray */
+  .s13{background:#800000;color:#fff;}     /* LAST (purged) */
+
+  .ritz .grid-container{display:inline-block;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35) inset;overflow:auto;padding:8px;}
+  table.waffle{border-collapse:collapse;table-layout:auto;width:auto;}
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Run only after DOM is parsed so ../../player_data.js (defer) is ready
+  document.addEventListener('DOMContentLoaded', init);
+
+  function init(){
+    const state = readStateAuto();
+    const tbl = document.getElementById("chart");
+    if(!state || !state.episodes){ tbl.innerHTML=""; return; }
+
+    const BYID = makePlayersMap(state);
+    const totals = getFinalTotals(state);
+
+    function nameOf(id){
+      const p = BYID[id];
+      return p ? (p.nickname || p.name || id) : id;
+    }
+    function teamName(ti){
+      const t = state.teams && state.teams[ti];
+      if(!t) return "Team "+(ti+1);
+      if (Array.isArray(t.ids) && t.ids.length>=2) return nameOf(t.ids[0]) + " & " + nameOf(t.ids[1]);
+      return nameOf(t.aId) + " & " + nameOf(t.bId);
+    }
+    function teamColor(ti){
+      if(state.teamColors && state.teamColors[ti]) return state.teamColors[ti];
+      const t = state.teams && state.teams[ti];
+      if(t && t.color) return t.color;
+      const DEF=["#fa5252","#e64980","#be4bdb","#7950f2","#4c6ef5","#228be6","#15aabf","#12b886","#40c057","#82c91e","#fab005","#fd7e14"];
+      return DEF[ti % DEF.length];
+    }
+    function E(ep){ return (state.episodes && state.episodes[ep]) || {}; }
+    function inAlive(Ep, ti){ return !!(Ep.status && Array.isArray(Ep.status.alive) && Ep.status.alive.indexOf(ti)>=0); }
+    function has(arr,x){ return Array.isArray(arr) && arr.indexOf(x)>=0; }
+
+    function getFinalTotals(st){
+      const F = (E(14).final_results) || {};
+      return Array.isArray(F.teamTotals) ? F.teamTotals.slice() : [];
+    }
+
+    function cellCode(ep, ti){
+      const e = E(ep);
+      let code = null;
+
+      // Purges: ep 1 + part two, ep 3/7/12 mid_purge
+      if(ep===1 && e.opening_purge){
+        if(ti===e.opening_purge.winner) code = "WON";
+        if(has(e.opening_purge.purged_first, ti)) code = code || "LAST";
+        if(e.purge_part_two && ti===e.purge_part_two.target) code = code || "LAST";
+      }
+      if((ep===3 || ep===7 || ep===12) && e.mid_purge){
+        if(ti===e.mid_purge.winner) code = "WON";
+        const pur = e.mid_purge.purged;
+        if((Array.isArray(pur) && pur.indexOf(ti)>=0) || (typeof pur==='number' && pur===ti)) code = code || "LAST";
+      }
+
+      // Daily winner
+      if(e.daily_challenge && ti===e.daily_challenge.power) code = code || "WIN";
+
+      // RISK: voted nominee & eligible (not power)
+      if(e.call_out && e.voting){
+        const voters = e.call_out.voters || [];
+        if(voters.indexOf(ti)>=0 && ti!==e.voting.power) code = code || "RISK";
+      }
+
+      // Eliminations (support multiple)
+      if(e.elim_result && Array.isArray(e.elim_result.results)){
+        for(const rr of e.elim_result.results){
+          if(rr && typeof rr.winner==="number" && typeof rr.loser==="number"){
+            if(rr.winner===ti) code="ELIM";
+            if(rr.loser===ti)  code="OUT";
+          }
+        }
+      }
+
+      // Final (ep 14)
+      if(ep===14){
+        if(totals.length>=1 && ti===totals[0].ti) code="WINNER";
+        else if(totals.length>=2 && ti===totals[1].ti) code="SECOND";
+        else if(totals.length>=3 && ti===totals[2].ti) code="THIRD";
+        else if(totals.length>=4 && ti===totals[3].ti) code="FOURTH";
+      }
+
+      // SAFE vs blank
+      if(code==null){
+        code = inAlive(e, ti) ? "SAFE" : "";
+      }
+      return code;
+    }
+
+    function clsFor(code){
+      switch(code){
+        case "WON": return "s7";
+        case "WIN": return "s3";
+        case "LAST": return "s13";
+        case "ELIM": return "s5";
+        case "OUT": return "s11";
+        case "SAFE": return "s1";
+        case "RISK": return "s4";
+        case "WINNER": return "s6"; // explicit green
+        case "SECOND":
+        case "THIRD":
+        case "FOURTH": return "s8";
+        default: return "s12";
+      }
+    }
+
+    function td(cls, text){
+      const el=document.createElement("td");
+      el.className = cls || "s1";
+      if(text!=null) el.textContent = text;
+      return el;
+    }
+
+    // header
+    (function buildHeader(){
+      const thead=document.createElement("thead");
+      const r=document.createElement("tr");
+      const thTeam=td("s0","Team"); thTeam.colSpan=2;
+      r.appendChild(thTeam);
+      for(let ep=1; ep<=13; ep++) r.appendChild(td("s0","Ep "+ep));
+      r.appendChild(td("s0","Final"));
+      thead.appendChild(r);
+      document.getElementById("chart").appendChild(thead);
+    })();
+
+    // order rows: winners→2nd→3rd→4th → remaining by most-recent elim (13→1)
+    function placementEpNum(ti){
+      const info = state.elimInfo && state.elimInfo[ti];
+      if(!info) return -1;
+      if(info.returned){
+        if(typeof info.finalEp === 'number' && info.finalContext === 'main') return info.finalEp;
+        if(typeof info.lastEp === 'number') return info.lastEp;
+        if(typeof info.firstEp === 'number') return info.firstEp;
+        return -1;
+      } else {
+        if(typeof info.firstEp === 'number') return info.firstEp;
+        if(typeof info.lastEp === 'number') return info.lastEp;
+        if(typeof info.finalEp === 'number' && info.finalContext === 'main') return info.finalEp;
+        return -1;
+      }
+    }
+
+    const finalists = totals.map(x=>x.ti);
+    let ordered = [];
+    for(let i=0;i<Math.min(4, totals.length);i++) ordered.push(totals[i].ti);
+
+    let tail = [];
+    for(let ti=0; ti<(state.teams?state.teams.length:0); ti++){
+      const t = state.teams[ti];
+      if(t && (t.aId || (Array.isArray(t.ids) && t.ids.length>=2)) && finalists.indexOf(ti) < 0) tail.push(ti);
+    }
+    tail.sort((a,b)=>{
+      const ea=placementEpNum(a), eb=placementEpNum(b);
+      if(eb!==ea) return eb-ea; // latest first
+      return a-b;
+    });
+    ordered = ordered.concat(tail);
+
+    // body
+    (function buildBody(){
+      const tbody=document.createElement("tbody");
+      for(const ti of ordered){
+        const tr=document.createElement("tr");
+
+        const c1 = td("sColor",""); c1.style.background = teamColor(ti);
+        tr.appendChild(c1);
+
+        tr.appendChild(td("s2", teamName(ti)));
+
+        for(let ep=1; ep<=13; ep++){
+          const code = cellCode(ep, ti);
+          tr.appendChild(td(clsFor(code), code));
+        }
+        const codeF = cellCode(14, ti);
+        tr.appendChild(td(clsFor(codeF), codeF));
+
+        tbody.appendChild(tr);
+      }
+      document.getElementById("chart").appendChild(tbody);
+    })();
+  }
+
+  // ------- helpers: load state & build player map -------
+
+  function readStateAuto(){
+    const tryKeys = ["challenge-fr-season","challenge-free-agents-season"];
+    for(const k of tryKeys){
+      try{
+        const v = JSON.parse(sessionStorage.getItem(k)||"null");
+        if(v && v.episodes) return v;
+      }catch(_){}
+    }
+    try{
+      for(let i=0;i<sessionStorage.length;i++){
+        const k=sessionStorage.key(i);
+        try{
+          const v=JSON.parse(sessionStorage.getItem(k)||"null");
+          if(v && v.episodes) return v;
+        }catch(_){}
+      }
+    }catch(_){}
+    // opener / parent fallback if user opened from simulator
+    try{
+      if(window.opener){
+        const s = tryReadFrom(window.opener, tryKeys);
+        if(s) return s;
+      }
+    }catch(_){}
+    try{
+      if(window.parent && window.parent!==window){
+        const s = tryReadFrom(window.parent, tryKeys);
+        if(s) return s;
+      }
+    }catch(_){}
+    return null;
+  }
+
+  function tryReadFrom(win, keys){
+    for(const k of keys){
+      try{
+        const v = JSON.parse(win.sessionStorage.getItem(k)||"null");
+        if(v && v.episodes) return v;
+      }catch(_){}
+    }
+    try{
+      for(let i=0;i<win.sessionStorage.length;i++){
+        const kk = win.sessionStorage.key(i);
+        try{
+          const vv = JSON.parse(win.sessionStorage.getItem(kk)||"null");
+          if(vv && vv.episodes) return vv;
+        }catch(_){}
+      }
+    }catch(_){}
+    return null;
+  }
+
+  function makePlayersMap(state){
+    const map = {};
+
+    // 1) opener/parent live map (best if chart opened from the sim)
+    try{ if(window.opener && window.opener.PLAYERS_BY_ID) Object.assign(map, window.opener.PLAYERS_BY_ID); }catch(_){}
+    try{ if(window.parent && window.parent!==window && window.parent.PLAYERS_BY_ID) Object.assign(map, window.parent.PLAYERS_BY_ID); }catch(_){}
+
+    // 2) saved state maps/objects
+    if(state.PLAYERS_BY_ID) Object.assign(map, state.PLAYERS_BY_ID);
+    if(Array.isArray(state.cast)){ state.cast.forEach(p=>{ if(p && typeof p==="object" && p.id && !map[p.id]) map[p.id]=p; }); }
+    if(Array.isArray(state.players)){ state.players.forEach(p=>{ if(p && typeof p==="object" && p.id && !map[p.id]) map[p.id]=p; }); }
+
+    // 3) this page (if sim injected on chart page too)
+    if(typeof window.PLAYERS_BY_ID==="object") Object.assign(map, window.PLAYERS_BY_ID);
+
+    // 4) player_data.js (final fallback)
+    const pd = window.playerData || {};
+    ["males","females","others"].forEach(bucket=>{
+      (pd[bucket]||[]).forEach(p=>{
+        if(p && p.id && !map[p.id]) map[p.id]=p;
+      });
+    });
+
+    return map;
+  }
+
+})();
+</script>
+</body>
+</html>

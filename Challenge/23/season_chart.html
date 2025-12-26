@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — Battle of the Seasons</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    color-scheme: dark;
+    --bg:#0b0f16;
+    --panel:#121826;
+    --border:#a9a9a9;
+    --ink:#e9eefb;
+  }
+
+  html, body {
+    margin:0;
+    padding:0;
+    font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+
+  .page {
+    padding:20px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+
+  h1 {
+    font-weight:700;
+    margin:6px 0 12px;
+  }
+
+  .notice {
+    margin:18px 0;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:rgba(40,60,90,.35);
+  }
+
+  /* Spreadsheet skin */
+  table.waffle {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: auto;
+  }
+  .waffle td, .waffle th {
+    border:1px solid #a9a9a9;
+    text-align:center;
+    vertical-align:middle;
+    padding:6px 8px;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#202122;
+  }
+  .waffle th {
+    background:#eaecf0;
+    font-weight:bold;
+  }
+
+  /* Base status colors (keep existing palette) */
+  .sSAFE    { background:#f8f9fa; }   /* SAFE */
+  .sWIN     { background:#00bfff; }   /* WIN */
+  .sNOM     { background:#f5deb3; }   /* legacy */
+  .sOUT     { background:#ff6347; }   /* OUT */
+  .sWINNER  { background:#00ff00; font-weight:bold; }       /* WINNER */
+  .sLOSER   { background:#87ceeb; font-weight:bold; }       /* legacy */
+  .sDEAD    { background:#a9a9a9; }                         /* after elimination */
+
+  /* New semantic wrappers using same palette */
+  .sRISK    { background:#f5deb3; }                         /* RISK */
+  .sELIM    { background:#008000; }                         /* ELIM (winner in elim) */
+  .waffle td.sELIM { color:#ffffff; }                       /* make ELIM text white */
+  .sPLACE   { background:#87ceeb; font-weight:bold; }       /* SECOND/THIRD/FOURTH/FIFTH */
+
+  .team-cell {
+    width:4px !important;
+    padding:0;
+  }
+
+  .ritz .grid-container {
+    display:inline-block;
+    max-width:100%;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow:auto;
+    padding:12px;
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+  <h1>Season Chart</h1>
+  <div id="msg" class="notice" style="display:none;"></div>
+
+  <div class="ritz grid-container" dir="ltr">
+    <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* Storage key for Battle of the Seasons */
+const KEY = "challenge-bots-season";
+const tbl = document.getElementById("chart");
+const msg = document.getElementById("msg");
+
+function readState() {
+  const tryGet = (store) => {
+    try { return store.getItem(KEY); } catch { return null; }
+  };
+  let raw = tryGet(sessionStorage) || tryGet(localStorage);
+  if (!raw && window.opener) {
+    try {
+      raw =
+        window.opener.sessionStorage.getItem(KEY) ||
+        window.opener.localStorage.getItem(KEY);
+    } catch {}
+  }
+  if (!raw && location.hash.length > 1) {
+    const h = decodeURIComponent(location.hash.slice(1));
+    try { raw = atob(h); } catch { raw = h; }
+  }
+  try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+
+const state = readState();
+if (!state || !state.episodes || !Array.isArray(state.players) || !state.players.length) {
+  msg.style.display = "block";
+  msg.textContent = 'No season found. Open the simulator and click "Season Chart" after simulating.';
+  return;
+}
+
+/* Build roster from current players */
+const roster = (state.players || []).filter(Boolean);
+
+const byId = Object.fromEntries(
+  roster.map(p => [p.id, p])
+);
+
+function nameOf(id) {
+  const p = byId[id];
+  return p ? (p.nickname || p.name || id) : id;
+}
+
+function teamOf(id) {
+  const p = byId[id];
+  return p && p.team ? p.team : null;
+}
+
+/* Team color from state.teams */
+function teamColor(pid){
+  const p = byId[pid];
+  if (!p) return "#ffffff";
+  const t = state.teams && state.teams[p.team];
+  return t && t.color ? t.color : "#ffffff";
+}
+
+/* Placements (eliminations) */
+const placements = state.placements || {};
+const eliminatedList = Array.isArray(placements.eliminated)
+  ? placements.eliminated.slice()
+  : [];
+
+/* Elimination episode per player */
+const elimEpisodeById = {};
+eliminatedList.forEach(e => {
+  if (!e || e.id == null) return;
+  elimEpisodeById[e.id] = e.episode;
+});
+const eliminatedIds = eliminatedList.map(e => e.id);
+
+/* Sort eliminated: latest episode out first for rows */
+eliminatedList.sort((a,b) => (b.episode || 0) - (a.episode || 0));
+
+/* Episodes */
+const episodes = state.episodes || {};
+const EP_FIRST = 1;
+const EP_LAST  = 12;
+
+/* Final order: grab full order array from Final Results (can be up to 5 teams) */
+let finalOrderTeams = [];
+const finalEp = episodes[EP_LAST];
+if (finalEp && finalEp.final && finalEp.final.results && Array.isArray(finalEp.final.results.order)) {
+  finalOrderTeams = finalEp.final.results.order.slice();   // best → worst
+} else {
+  // Fallback to placements.final (only first/second/third)
+  const finalInfo = placements.final || {};
+  if (finalInfo.first)  finalOrderTeams.push(finalInfo.first);
+  if (finalInfo.second) finalOrderTeams.push(finalInfo.second);
+  if (finalInfo.third)  finalOrderTeams.push(finalInfo.third);
+}
+
+/* Up to 5 finals placements */
+const firstTeam  = finalOrderTeams[0] || null;
+const secondTeam = finalOrderTeams[1] || null;
+const thirdTeam  = finalOrderTeams[2] || null;
+const fourthTeam = finalOrderTeams[3] || null;
+const fifthTeam  = finalOrderTeams[4] || null;
+
+/* Helpers for team membership */
+function teamMembers(teamKey) {
+  if (!teamKey) return [];
+  return roster
+    .filter(p => p.team === teamKey)
+    .map(p => p.id);
+}
+
+/* Only finalists: players still alive on that team at the end */
+function teamFinalMembers(teamKey) {
+  if (!teamKey) return [];
+  return roster
+    .filter(p => p.team === teamKey && p.alive !== false)
+    .map(p => p.id);
+}
+
+/* Finalists by placement – **only** players who actually reached the final */
+const firstPlayers  = teamFinalMembers(firstTeam);
+const secondPlayers = teamFinalMembers(secondTeam);
+const thirdPlayers  = teamFinalMembers(thirdTeam);
+const fourthPlayers = teamFinalMembers(fourthTeam);
+const fifthPlayers  = teamFinalMembers(fifthTeam);
+
+const finalists = []
+  .concat(firstPlayers, secondPlayers, thirdPlayers, fourthPlayers, fifthPlayers);
+
+/* Remaining players: not finalists and not in eliminated list */
+const everyoneIds = roster.map(p => p.id);
+const remaining = everyoneIds.filter(id =>
+  !finalists.includes(id) && !eliminatedIds.includes(id)
+);
+
+/* Row order:
+   1) Final winners team players
+   2) Second place team players
+   3) Third place team players
+   4) Fourth place team players
+   5) Fifth place team players
+   6) Eliminated players (latest out first)
+   7) Any leftover remaining
+*/
+const rawOrder = []
+  .concat(firstPlayers, secondPlayers, thirdPlayers, fourthPlayers, fifthPlayers)
+  .concat(eliminatedList.map(e => e.id))
+  .concat(remaining);
+
+const rowOrder = [];
+const seen = new Set();
+rawOrder.forEach(id => {
+  if (!byId[id]) return;
+  if (seen.has(id)) return;
+  seen.add(id);
+  rowOrder.push(id);
+});
+
+/* Precompute elimination participants per episode (everyone who played in elim) */
+const elimParticipantsByEp = {};
+Object.keys(episodes).forEach(epStr => {
+  const epNum = parseInt(epStr, 10);
+  if (!epNum) return;
+  const E = episodes[epNum];
+  if (!E || !E.elimination || !E.elimination.matchups) return;
+
+  const m = E.elimination.matchups;
+  const f = m.female || {};
+  const ma = m.male   || {};
+
+  const ids = [];
+  [f.A, f.B, f.winner, f.loser, ma.A, ma.B, ma.winner, ma.loser].forEach(function(x){
+    if (x != null && ids.indexOf(x) === -1) ids.push(x);
+  });
+
+  if (ids.length) {
+    elimParticipantsByEp[epNum] = ids;
+  }
+});
+
+/* Episode label logic */
+function getEpisodeLabel(ep, pid){
+  const E = episodes[ep];
+  if (!E) return "SAFE";
+
+  const elimIds = elimParticipantsByEp[ep] || [];
+  const inElim = elimIds.indexOf(pid) !== -1;
+
+  /* ELIM / OUT on elimination episode */
+  if (inElim) {
+    const outEp = elimEpisodeById[pid];
+    if (outEp === ep) return "OUT";   // lost and eliminated
+    return "ELIM";                    // played and survived
+  }
+
+  /* Final episode: team placements */
+  if (ep === EP_LAST) {
+    const tKey = teamOf(pid);
+    if (!tKey) return "SAFE";
+
+    if (firstTeam  && tKey === firstTeam)  return "WINNER";
+    if (secondTeam && tKey === secondTeam) return "SECOND";
+    if (thirdTeam  && tKey === thirdTeam)  return "THIRD";
+    if (fourthTeam && tKey === fourthTeam) return "FOURTH";
+    if (fifthTeam  && tKey === fifthTeam)  return "FIFTH";
+
+    return "SAFE";
+  }
+
+  const daily  = E.daily  || {};
+  const voting = E.voting || {};
+
+  const winnerTeam    = daily.winningTeam   || null;
+  const lastTeam      = daily.lastTeam      || voting.lastTeam || null;
+  const nominatedTeam = voting.opponentTeam || null;
+
+  const tKey = teamOf(pid);
+
+  /* Daily winners */
+  if (winnerTeam && tKey === winnerTeam) {
+    return "WIN";
+  }
+
+  /* RISK: last-place OR nominated team, but not in elimination */
+  const isLast = lastTeam && tKey === lastTeam;
+  const isNom  = nominatedTeam && tKey === nominatedTeam;
+
+  if (isLast || isNom) {
+    return "RISK";
+  }
+
+  return "SAFE";
+}
+
+/* Build table */
+buildHeader(tbl);
+buildBody(tbl);
+
+function buildHeader(table){
+  const thead = document.createElement("thead");
+  const r = document.createElement("tr");
+
+  const th = (t) => {
+    const el = document.createElement("th");
+    el.textContent = t;
+    return el;
+  };
+
+  // Team color column
+  const thColor = document.createElement("th");
+  thColor.style.width = "8px";
+  r.appendChild(thColor);
+
+  // Player name column
+  const thPlayer = document.createElement("th");
+  thPlayer.textContent = "Player";
+  r.appendChild(thPlayer);
+
+  for (let ep = EP_FIRST; ep <= EP_LAST; ep++){
+    if (ep === EP_LAST) r.appendChild(th("Final"));
+    else r.appendChild(th("Ep " + ep));
+  }
+
+  thead.appendChild(r);
+  table.appendChild(thead);
+}
+
+function buildBody(table){
+  const tbody = document.createElement("tbody");
+
+  const td = (cls, txt) => {
+    const el = document.createElement("td");
+    el.className = cls;
+    el.textContent = txt || "";
+    return el;
+  };
+
+  rowOrder.forEach(pid => {
+    const p = byId[pid];
+    if (!p) return;
+
+    const tr = document.createElement("tr");
+
+    /* Team color strip */
+    const col = document.createElement("td");
+    col.className = "team-cell";
+    col.style.background = teamColor(pid);
+    tr.appendChild(col);
+
+    /* Name cell (always visible; styling via SAFE) */
+    tr.appendChild(td("sSAFE", nameOf(pid)));
+
+    /* Episode cells */
+    let dead = false;
+
+    for (let ep = EP_FIRST; ep <= EP_LAST; ep++){
+      if (dead){
+        tr.appendChild(td("sDEAD",""));
+        continue;
+      }
+
+      const label = getEpisodeLabel(ep, pid);
+
+      let cls = "sSAFE";
+      switch(label){
+        case "WIN":     cls = "sWIN";    break;
+        case "RISK":    cls = "sRISK";   break;
+        case "ELIM":    cls = "sELIM";   break;
+        case "OUT":     cls = "sOUT";    dead = true; break;
+        case "WINNER":  cls = "sWINNER"; break;
+        case "SECOND":
+        case "THIRD":
+        case "FOURTH":
+        case "FIFTH":
+          cls = "sPLACE";               break;
+        default:
+          cls = "sSAFE";                break;
+      }
+
+      tr.appendChild(td(cls, label));
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+}
+
+})();
+</script>
+
+</body>
+</html>
