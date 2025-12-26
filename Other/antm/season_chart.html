@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Chart — Fanzy’s Simulator</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#0b0f16; color:#e9eefb; }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1, h2 { font-weight:600; margin:10px 0 12px; }
+  .notice { margin:18px 0; padding:10px 12px; border:1px solid #384860; border-radius:10px; background:rgba(40,60,90,.35); }
+
+  /* ---------- Google Sheets-like table skin (template match) ---------- */
+  .ritz .waffle a { color: inherit; }
+
+  /* Template 1 swatches (Call-Out Order) */
+  .sheet1 .s0{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#efefef;text-align:center;font-weight:bold;color:#000;font-family:arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+  .sheet1 .s1{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#f8f9fa;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+  .sheet1 .s2{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#32cd32;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* Winner (green) */
+  .sheet1 .s3{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#ff6347;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* Eliminated / Runner-up */
+  .sheet1 .s4{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#666;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}  /* Blank/unused */
+  .sheet1 .sQUIT{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#db7093;text-align:center;color:#fff;font-family:Arial;font-size:10pt;font-weight:bold;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+  .sheet1 .sELIM2{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#8b0000;text-align:center;color:#fff;font-family:Arial;font-size:10pt;font-weight:bold;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+
+  /* Template 2 swatches (Elimination Progress / Stats) */
+  .sheet2 .s0{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#efefef;text-align:center;font-weight:bold;color:#000;font-family:arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+  .sheet2 .s1{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#f8f9fa;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}  /* SAFE */
+  .sheet2 .s2{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#add8e6;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}  /* HIGH */
+  .sheet2 .s3{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#4169e1;text-align:center;font-weight:bold;color:#fff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* WIN */
+  .sheet2 .s4{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#ff7845;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}  /* BTM2 */
+  .sheet2 .s5{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#ffb6c1;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}  /* LOW */
+  .sheet2 .s6{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#d4af37;text-align:center;font-weight:bold;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* Winner */
+  .sheet2 .s7{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#c0c0c0;text-align:center;font-weight:bold;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* Runner-Up */
+  .sheet2 .s8{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#ff0000;text-align:center;font-weight:bold;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* ELIM */
+  .sheet2 .s9{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#666666;text-align:center;color:#222;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;} /* blank */
+  .sheet2 .sQUIT{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#db7093;text-align:center;font-weight:bold;color:#fff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+  .sheet2 .sELIM2{border-bottom:1px SOLID #666;border-right:1px SOLID #666;background-color:#8b0000;text-align:center;font-weight:bold;color:#fff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:nowrap;direction:ltr;padding:2px 6px;}
+
+  .ritz .grid-container { overflow:auto; background:#0b0f16; border:1px solid #1a2233; border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,.35) inset; }
+  table.waffle { border-collapse:collapse; width:max-content; min-width:100%; }
+  /* Call-Out Order sizing overrides */
+  .sheet1 td { padding: 6px 10px; height: 28px; }
+
+  /* Elimination Progress sizing overrides */
+  .sheet2 table.waffle { min-width: 0; width: max-content; }
+  .sheet2 td { padding: 6px 10px; height: 28px; }
+  .sec { margin: 8px 0 28px; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div id="msg" class="notice" style="display:none;"></div>
+
+    <div class="sec">
+      <h2>Call-Out Order</h2>
+      <div class="ritz grid-container sheet1"><table class="waffle" id="sheet1"></table></div>
+    </div>
+
+    <div class="sec">
+      <h2>Elimination Progress</h2>
+      <div class="ritz grid-container sheet2"><table class="waffle" id="sheet2"></table></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Your ANTM sim saves under this key (antm_sim.js uses sessionStorage with KEY="antm-season")
+  const KEY_PRIMARY = "antm-season";
+
+  // Back-compat (in case you ever used other keys)
+  const KEY_FALLBACKS = ["antm-season-state", "antm-season-state-v2"];
+
+  const msg = document.getElementById("msg");
+  const table1 = document.getElementById("sheet1");
+  const table2 = document.getElementById("sheet2");
+
+  function tryGet(store, key){
+    try { return store.getItem(key); } catch { return null; }
+  }
+
+  function readState() {
+    // 1) same-tab sessionStorage
+    let raw = tryGet(sessionStorage, KEY_PRIMARY);
+    // 2) localStorage (cross-tab)
+    if(!raw) raw = tryGet(localStorage, KEY_PRIMARY);
+
+    // 3) fallbacks
+    if(!raw){
+      for(const k of KEY_FALLBACKS){
+        raw = tryGet(sessionStorage, k) || tryGet(localStorage, k);
+        if(raw) break;
+      }
+    }
+
+    // 4) opener’s storage (if opened via button/link)
+    if(!raw && window.opener) {
+      try {
+        raw = window.opener.sessionStorage.getItem(KEY_PRIMARY) || window.opener.localStorage.getItem(KEY_PRIMARY);
+        if(!raw){
+          for(const k of KEY_FALLBACKS){
+            raw = window.opener.sessionStorage.getItem(k) || window.opener.localStorage.getItem(k);
+            if(raw) break;
+          }
+        }
+      } catch (e) { /* cross-origin or blocked */ }
+    }
+
+    // 5) URL hash (optional; supports b64-encoded payload)
+    if(!raw && location.hash.length > 1) {
+      const h = decodeURIComponent(location.hash.slice(1));
+      try { raw = atob(h); } catch(e) { raw = h; }
+    }
+
+    try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+  }
+
+  const state = readState();
+
+  if(!state){
+    msg.style.display="block";
+    msg.textContent = "No season found. Open the simulator and click 'Open Season Chart' after simulating.";
+    return;
+  }
+
+  // Cast
+  const cast = (state.castModels ? (state.castModels||[]).filter(Boolean) : (state.cast||[]).filter(Boolean));
+  if(!cast.length){
+    msg.style.display="block";
+    msg.textContent = "No cast found in saved season state.";
+    return;
+  }
+
+  const byId = Object.fromEntries(cast.map(c=>[c.id, c]));
+  const nameOf = id => byId[id]?.nickname || byId[id]?.name || id;
+
+  // Episodes (ANTM sim stores episodes as an object keyed by episode number)
+  const episodesObj = state.episodes || {};
+  const epNums = Object.keys(episodesObj).map(n=>+n).filter(n=>n>0).sort((a,b)=>a-b);
+  const finalEp = epNums.length ? epNums[epNums.length-1] : 0;
+
+  if(finalEp < 2){
+    msg.style.display="block";
+    msg.textContent = "Season has not been simulated far enough to build a chart.";
+    return;
+  }
+
+  const EP_FIRST = 1;
+  const EP_LAST_REG = finalEp - 1;
+
+  // Winner + final order (Top 3)
+  const finalE = episodesObj[finalEp] || {};
+  const winnerId = finalE.winner?.winnerId || null;
+
+  // Runner-ups = final order without winner (keeps final order)
+  const finalOrder = Array.isArray(finalE.winner?.order) ? finalE.winner.order.slice()
+                  : (Array.isArray(finalE.status) ? finalE.status.slice() : []);
+  const runnerUps = finalOrder.filter(x => x && x !== winnerId);
+
+  // Robust elimination detection: diff status lists (handles QUIT + double elim)
+  const elimByEp = {}; // ep -> [ids eliminated between ep and ep+1]
+  for(let e=EP_FIRST; e<=EP_LAST_REG; e++){
+    const cur = (episodesObj[e]?.status && Array.isArray(episodesObj[e].status)) ? episodesObj[e].status.slice() : [];
+    const nxt = (episodesObj[e+1]?.status && Array.isArray(episodesObj[e+1].status)) ? episodesObj[e+1].status.slice() : [];
+    const nxtSet = new Set(nxt);
+    const gone = cur.filter(id => !nxtSet.has(id));
+    elimByEp[e] = gone;
+  }
+
+  // Flatten elimination order by episode (early -> late)
+  const elimOrder = [];
+  for(let e=EP_FIRST; e<=EP_LAST_REG; e++){
+    (elimByEp[e] || []).forEach(id => { if(id) elimOrder.push(id); });
+  }
+
+  // Row order for sheet 2:
+  // Winner -> runner-ups -> eliminated in reverse (latest first)
+  const reversePlacements = elimOrder.slice().reverse();
+  const rowOrder2 = []
+    .concat(winnerId ? [winnerId] : [])
+    .concat(runnerUps)
+    .concat(reversePlacements);
+
+  // Sheet 1 rows
+  const N = cast.length;
+
+  /* ---------------- Sheet 1 (call-out order by episode) ---------------- */
+  buildHeader1(table1, EP_LAST_REG, finalEp);
+
+  const tbody1 = document.createElement("tbody");
+  for(let r=1; r<=N; r++){
+    const tr = document.createElement("tr");
+    tr.appendChild(td("s1", String(r)));
+
+    for(let e=EP_FIRST; e<=EP_LAST_REG; e++){
+      const ep = episodesObj[e] || {};
+      const CO = ep.callout || {};
+      const orderRaw = Array.isArray(CO.order) ? CO.order : [];
+      const elimIds = elimByEp[e] || [];
+      // Ensure eliminated models appear last in call-out display (handles QUIT + double elim)
+      const order = orderRaw.filter(x => !elimIds.includes(x)).concat(orderRaw.filter(x => elimIds.includes(x)));
+      if (r <= order.length){
+        const id = order[r-1];
+        const bottomTwo = Array.isArray(CO.bottomTwo) ? CO.bottomTwo : [];
+
+        let cls = "s1";
+        if(elimIds.includes(id)){
+          // QUIT: eliminated is not in bottom two
+          if(elimIds.length === 1 && bottomTwo.length === 2 && !bottomTwo.includes(elimIds[0])){
+            cls = "sQUIT";
+          } else if (elimIds.length === 2) {
+            cls = "sELIM2";
+          } else {
+            cls = "s3";
+          }
+        }
+        tr.appendChild(td(cls, nameOf(id)));
+      } else {
+        tr.appendChild(td("s4", ""));
+      }
+    }
+
+    // Final column: Winner on row 1, runner-ups next
+    if(r === 1 && winnerId){
+      tr.appendChild(td("s2", nameOf(winnerId)));
+    } else {
+      const idxRU = r-2;
+      if(idxRU >= 0 && idxRU < runnerUps.length){
+        tr.appendChild(td("s3", nameOf(runnerUps[idxRU])));
+      } else {
+        tr.appendChild(td("s4", ""));
+      }
+    }
+
+    tbody1.appendChild(tr);
+  }
+  table1.appendChild(tbody1);
+  equalizeCalloutColumnWidths();
+
+  /* ---------------- Sheet 2 (per-player outcomes) ---------------- */
+  buildHeader2(table2, EP_LAST_REG, finalEp);
+
+  const tbody2 = document.createElement("tbody");
+
+  function labelFor(e, id){
+    const ep = episodesObj[e] || {};
+    const CO = ep.callout || {};
+    const order = Array.isArray(CO.order) ? CO.order : [];
+    if(!order.length) return {text:"", cls:"s9"};
+
+    const r = order.indexOf(id);
+    if(r === -1) return {text:"", cls:"s9"};
+
+    const bottomTwo = Array.isArray(CO.bottomTwo) ? CO.bottomTwo : [];
+    const elimIds = elimByEp[e] || [];
+
+    // QUIT detection: 1 eliminated, not in bottom two
+    const isQuit = (elimIds.length === 1 && bottomTwo.length === 2 && !bottomTwo.includes(elimIds[0]));
+    const isDouble = (elimIds.length === 2);
+
+    if(elimIds.includes(id)){
+      if(isQuit) return {text:"QUIT", cls:"sQUIT"};
+      if(isDouble) return {text:"ELIM", cls:"sELIM2"};
+      return {text:"ELIM", cls:"s8"};
+    }
+
+    if(r === 0) return {text:"WIN", cls:"s3"};
+
+    // HIGH logic (keeps your template behavior)
+    const Nleft = order.length;
+    const onlyOneHigh = (Nleft <= 5);
+    if(onlyOneHigh ? r===1 : (r===1 || r===2)) return {text:"HIGH", cls:"s2"};
+
+    // Bottom 2 marker (only if they weren't eliminated)
+    if(bottomTwo.includes(id)) return {text:"BTM2", cls:"s4"};
+
+    // LOW marker (3rd from bottom)
+    if (Nleft >= 3 && r === Nleft - 3) return {text:"LOW", cls:"s5"};
+
+    return {text:"SAFE", cls:"s1"};
+  }
+
+  rowOrder2.forEach((id)=>{
+    if(!id || !byId[id]) return;
+    const tr = document.createElement("tr");
+    tr.appendChild(td("s1", nameOf(id)));
+
+    for(let e=EP_FIRST; e<=EP_LAST_REG; e++){
+      const lab = labelFor(e, id);
+      tr.appendChild(td(lab.cls, lab.text));
+    }
+
+    // Final column
+    if (winnerId && id === winnerId) {
+      tr.appendChild(td("s6","Winner"));
+    } else if (runnerUps.includes(id)) {
+      tr.appendChild(td("s7","Runner-Up"));
+    } else {
+      tr.appendChild(td("s9",""));
+    }
+
+    tbody2.appendChild(tr);
+  });
+
+  table2.appendChild(tbody2);
+
+
+  // Make all episode columns in Call-Out Order the same width as Episode 1's column (not the Order column)
+  function equalizeCalloutColumnWidths(){
+    // Wait for layout
+    requestAnimationFrame(function(){
+      try{
+        var headRow2 = table1.querySelector("thead tr:nth-child(2)");
+        if(!headRow2 || !headRow2.cells || !headRow2.cells.length) return;
+
+        var firstEpCell = headRow2.cells[0]; // Episode 1 header cell (Order is rowspan above)
+        var w = Math.ceil(firstEpCell.getBoundingClientRect().width);
+        if(!w || w < 1) return;
+
+        // Total columns = (episodes+final) + Order
+        var totalCols = headRow2.cells.length + 1;
+
+        // Ensure colgroup exists with correct number of columns
+        var cg = table1.querySelector("colgroup");
+        if(!cg){
+          cg = document.createElement("colgroup");
+          for(var i=0;i<totalCols;i++){
+            cg.appendChild(document.createElement("col"));
+          }
+          table1.insertBefore(cg, table1.firstChild);
+        } else {
+          while(cg.children.length < totalCols) cg.appendChild(document.createElement("col"));
+          while(cg.children.length > totalCols) cg.removeChild(cg.lastChild);
+        }
+
+        // Apply width to all columns except the first (Order)
+        for(var c=1;c<totalCols;c++){
+          var col = cg.children[c];
+          col.style.width = w + "px";
+          col.style.minWidth = w + "px";
+          col.style.maxWidth = w + "px";
+        }
+      } catch(e){}
+    });
+  }
+
+  /* ---------- helpers ---------- */
+  function td(cls, text){
+    const el = document.createElement("td");
+    el.className = cls;
+    el.textContent = (text == null ? "" : String(text));
+    return el;
+  }
+
+  function buildHeader1(tbl, lastReg, finalEpNum){
+    const thead = document.createElement("thead");
+
+    const r1 = document.createElement("tr");
+    const orderCell = td("s0","Order");
+    orderCell.setAttribute("rowspan","2");
+    r1.appendChild(orderCell);
+
+    const hEpisodes = td("s0","Episodes");
+    hEpisodes.setAttribute("colspan", String(lastReg - EP_FIRST + 1));
+    r1.appendChild(hEpisodes);
+
+    r1.appendChild(td("s0","Final"));
+    thead.appendChild(r1);
+
+    const r2 = document.createElement("tr");
+    for(let e=EP_FIRST; e<=lastReg; e++){
+      r2.appendChild(td("s0", String(e)));
+    }
+    r2.appendChild(td("s0", String(finalEpNum)));
+    thead.appendChild(r2);
+
+    tbl.appendChild(thead);
+  }
+
+  function buildHeader2(tbl, lastReg, finalEpNum){
+    const thead = document.createElement("thead");
+
+    const r1 = document.createElement("tr");
+    const contCell = td("s0","Contestants");
+    contCell.setAttribute("rowspan","2");
+    r1.appendChild(contCell);
+
+    const hEpisodes = td("s0","Episodes");
+    hEpisodes.setAttribute("colspan", String(lastReg - EP_FIRST + 1));
+    r1.appendChild(hEpisodes);
+
+    r1.appendChild(td("s0","Final"));
+    thead.appendChild(r1);
+
+    const r2 = document.createElement("tr");
+    for(let e=EP_FIRST; e<=lastReg; e++){
+      r2.appendChild(td("s0", String(e)));
+    }
+    r2.appendChild(td("s0", String(finalEpNum)));
+    thead.appendChild(r2);
+
+    tbl.appendChild(thead);
+  }
+})();
+</script>
+</body>
+</html>

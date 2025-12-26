@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Season Chart — House of Villains</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet"/>
+
+<style>
+html, body {
+    margin:0;
+    padding:0;
+    background:#0b0f16;
+    color:#e9eefb;
+    font-family:'Montserrat', Arial, sans-serif;
+}
+
+.page {
+    padding:20px;
+    max-width:1300px;
+    margin:0 auto;
+}
+
+h1 {
+    font-weight:700;
+    margin:10px 0 14px;
+    text-align:left;
+}
+
+.ritz .grid-container {
+    display:inline-block;
+    background:white;          /* sheet background */
+    border:1px solid #a2a9b1;
+    border-radius:6px;
+    overflow:auto;
+    box-shadow:0 0 14px rgba(0,0,0,0.4);
+}
+
+
+table.waffle {
+    border-collapse:collapse;
+    table-layout:auto;
+    font-size:13px;
+    color:#202122;
+}
+
+table.waffle td, table.waffle th {
+    text-align:center;
+    vertical-align:middle;
+    padding:4px 6px;
+    border:1px solid #a2a9b1;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    font-family:Arial, sans-serif;
+}
+
+.s0 {
+    background:#eaecf0;
+    font-weight:bold;
+}
+
+.s1 {
+    background:#ffffff;
+}
+
+.sv {
+    background:#ccffcc;
+    font-style:italic;
+}
+
+.hl {
+    background:#959ffd;
+    font-style:italic;
+}
+
+.rw {
+    background:#c2d5e8;
+}
+
+.ban {
+    background:#fa8072;
+    font-style:italic;
+}
+
+.win {
+    background:#73fb76;
+    font-weight:bold;
+}
+
+.ru {
+    background:#d1e8ef;
+    font-weight:bold;
+}
+
+.tp {
+    background:#ffffdd;
+    font-weight:bold;
+}
+
+.blk td {
+    background:black !important;
+    border:none !important;
+    height:6px !important;
+    padding:0 !important;
+}
+
+.e6a {
+    background:#eaecf0;
+    font-weight:bold;
+}
+
+.e6b {
+    background:#eaecf0;
+    font-weight:bold;
+}
+
+.namecol {
+    font-weight:bold;
+    background:#f8f9fa;
+}
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+
+    <div id="msg" style="
+      margin:18px 0;
+      padding:12px 14px;
+      border:1px solid #1a2233;
+      border-radius:10px;
+      background:rgba(40,60,90,.35);
+      display:none;
+      font-size:14px;">
+    </div>
+
+    <div class="ritz grid-container" dir="ltr">
+      <table class="waffle" id="chart" cellspacing="0" cellpadding="0"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+
+const KEY = "house-of-villains-season";
+const EPISODES = 6;
+
+function readState(){
+    function tryGet(store){
+        try { return store.getItem(KEY); }
+        catch(e){ return null; }
+    }
+    let raw = null;
+    if (typeof sessionStorage !== "undefined") raw = tryGet(sessionStorage);
+    if (!raw && typeof localStorage !== "undefined") raw = tryGet(localStorage);
+
+    if (!raw && typeof window !== "undefined" && window.opener){
+        try {
+            raw = window.opener.sessionStorage.getItem(KEY) ||
+                  window.opener.localStorage.getItem(KEY);
+        } catch(e){}
+    }
+
+    if (!raw && location.hash && location.hash.length > 1){
+        const h = decodeURIComponent(location.hash.slice(1));
+        try { raw = atob(h); }
+        catch(e){ raw = h; }
+    }
+
+    if (!raw) return null;
+    try { return JSON.parse(raw); }
+    catch(e){ return null; }
+}
+
+function nameOf(state, id){
+    if (!id) return "";
+    let fromPlayers = null;
+
+    if (state.players){
+        fromPlayers = state.players.find(p => p && p.id === id);
+        if (fromPlayers)
+            return fromPlayers.nickname || fromPlayers.name || id;
+    }
+    if (state.castVillains){
+        fromPlayers = state.castVillains.find(p => p && p.id === id);
+        if (fromPlayers)
+            return fromPlayers.nickname || fromPlayers.name || id;
+    }
+    return id;
+}
+
+function getEpisodes(state){
+    const out = {};
+    const eps = state.episodes || {};
+    for (let i = 1; i <= EPISODES; i++){
+        out[i] = eps[i] || {};
+    }
+    return out;
+}
+
+function getPlacements(state){
+    const p = state.placements || {};
+    return {
+        winner: p.winner || null,
+        second: p.second || null,
+        third:  p.third  || null,
+        eliminated: Array.isArray(p.eliminated)
+                    ? p.eliminated.slice()
+                    : []
+    };
+}
+
+function makeCell(doc, tag, text, cls, opts){
+    const el = doc.createElement(tag);
+    if (cls) el.className = cls;
+    if (text !== undefined && text !== null) el.innerHTML = text;
+    if (opts){
+        if (opts.colspan) el.colSpan = opts.colspan;
+        if (opts.rowspan) el.rowSpan = opts.rowspan;
+    }
+    return el;
+}
+
+function getFinalHitlistNominees(episodes, ep, forGrid){
+    const E = episodes[ep] || {};
+    const H = E.hitlist || {};
+    const R = E.redemption || {};
+    const B = E.banishment || {};
+
+    if (ep >= 1 && ep <= 5){
+        let ids = [];
+        if (Array.isArray(B.nominees) && B.nominees.length){
+            ids = B.nominees.slice();
+        } else if (Array.isArray(H.nominees) && H.nominees.length){
+            ids = R.winner
+                ? H.nominees.filter(id => id !== R.winner)
+                : H.nominees.slice();
+        }
+        return ids;
+    }
+
+    if (forGrid){
+        return [];
+    } else {
+        if (Array.isArray(H.nominees)) return H.nominees.slice();
+        return [];
+    }
+}
+
+function buildTable(doc){
+    const tbl = doc.getElementById("chart");
+    const msg = doc.getElementById("msg");
+    if (!tbl || !msg) return;
+
+    const state = readState();
+    if (!state || !state.simulated){
+        msg.style.display = "block";
+        msg.textContent =
+            "No simulated House of Villains season found. " +
+            "Simulate a season first, then open this chart.";
+        return null;
+    }
+
+    tbl.innerHTML = "";
+    const thead = doc.createElement("thead");
+    const tbody = doc.createElement("tbody");
+    tbl.appendChild(thead);
+    tbl.appendChild(tbody);
+
+    return {
+        state,
+        episodes: getEpisodes(state),
+        placements: getPlacements(state),
+        tbl,
+        thead,
+        tbody,
+        doc
+    };
+}
+
+function buildHeaderRow(SCH){
+    const { doc, thead } = SCH;
+    const row = doc.createElement("tr");
+    row.appendChild(makeCell(doc, "th", "", "s0"));
+
+    for (let ep = 1; ep <= 5; ep++){
+        row.appendChild(makeCell(doc, "th", "Episode " + ep, "s0"));
+    }
+
+    const ep6 = makeCell(doc, "th", "Episode 6", "s0", { colspan: 2 });
+    row.appendChild(ep6);
+
+    thead.appendChild(row);
+}
+
+function buildEpisodeSummaryRows(SCH){
+    const { doc, tbody, episodes, state } = SCH;
+
+    const rSV = doc.createElement("tr");
+    rSV.appendChild(makeCell(doc, "td", "Supervillain of the Week", "s0"));
+
+    for (let ep = 1; ep <= 6; ep++){
+        const E = episodes[ep] || {};
+        const svId = E.supervillain ||
+                     (E.daily && Array.isArray(E.daily.winners)
+                        ? E.daily.winners[0]
+                        : null);
+
+const hasSV = !!svId;
+const txt = hasSV ? nameOf(state, svId) : "—";
+const cls = "s1";
+
+        if (ep < 6){
+            rSV.appendChild(makeCell(doc, "td", txt, cls));
+        } else {
+            rSV.appendChild(makeCell(doc, "td", txt, cls));
+            rSV.appendChild(makeCell(doc, "td", "—", "s1"));
+        }
+    }
+    rSV.className = "summary-row";
+tbody.appendChild(rSV);
+
+    const rHL = doc.createElement("tr");
+    rHL.appendChild(makeCell(doc, "td", "Hit List Nominees", "s0"));
+
+for (let ep = 1; ep <= 6; ep++){
+    const E = episodes[ep] || {};
+    const H = E.hitlist || {};
+    const noms = Array.isArray(H.nominees) ? H.nominees : [];
+
+    const txt = noms.length ? noms.map(id => nameOf(state, id)).join("<br>") : "—";
+    const cls = "s1";
+
+    if (ep < 6){
+        rHL.appendChild(makeCell(doc, "td", txt, cls));
+    } else {
+        rHL.appendChild(makeCell(doc, "td", txt, cls));
+        rHL.appendChild(makeCell(doc, "td", "—", "s1"));
+    }
+}
+    rHL.className = "summary-row";
+tbody.appendChild(rHL);
+
+    const rRW = doc.createElement("tr");
+    rRW.appendChild(makeCell(doc, "td", "Redemption Winner", "s0"));
+
+    for (let ep = 1; ep <= 6; ep++){
+        const E = episodes[ep] || {};
+        const R = E.redemption || {};
+        const w = R.winner || null;
+
+const hasRW = !!w;
+const txt = hasRW ? nameOf(state, w) : "—";
+const cls = "s1";
+
+        if (ep < 6){
+            rRW.appendChild(makeCell(doc, "td", txt, cls));
+        } else {
+            rRW.appendChild(makeCell(doc, "td", txt, cls));
+            rRW.appendChild(makeCell(doc, "td", "—", "s1"));
+        }
+    }
+    rRW.className = "summary-row";
+tbody.appendChild(rRW);
+
+    const blk = doc.createElement("tr");
+    const blkCell = makeCell(doc, "td", "", "", { colspan: 1 + 5 + 2 });
+    blkCell.className = "";
+    blk.appendChild(blkCell);
+    blk.className = "blk";
+    tbody.appendChild(blk);
+}
+
+function buildVillainGrid(SCH){
+    const { doc, tbody, episodes, placements, state } = SCH;
+
+    function isFinalHitList(ep, id){
+        const finals = getFinalHitlistNominees(episodes, ep, true);
+        return finals.includes(id);
+    }
+
+    function isSuperVillain(ep, id){
+        const E = episodes[ep] || {};
+        const sv = E.supervillain ||
+                   (E.daily && Array.isArray(E.daily.winners)
+                        ? E.daily.winners[0]
+                        : null);
+        return sv === id;
+    }
+
+    function isRedemptionWinner(ep, id){
+        const E = episodes[ep] || {};
+        const R = E.redemption || {};
+        return R.winner === id;
+    }
+
+    function banishedInEpisode(id){
+        const hit = placements.eliminated.find(e => e.id === id);
+        return hit ? hit.episode : null;
+    }
+
+function voteTarget(ep, id){
+    const E = episodes[ep] || {};
+    if (ep === 6){
+        const J = E.jury || {};
+        const ballotsJ = J.ballots || J.votesByPlayer || null;
+        if (ballotsJ && ballotsJ[id]){
+            return ballotsJ[id];
+        }
+        const JV = J.votes || {};
+        for (const target in JV){
+            if (!Object.prototype.hasOwnProperty.call(JV, target)) continue;
+            const val = JV[target];
+            if (!val) continue;
+
+            if (Array.isArray(val) && val.indexOf(id) !== -1){
+                return target;
+            }
+            if (typeof val === "object" && Array.isArray(val.voters) &&
+                val.voters.indexOf(id) !== -1){
+                return target;
+            }
+        }
+
+        return "";
+    }
+
+    const B = E.banishment || {};
+    const ballotsB = B.ballots || B.votesByPlayer || null;
+    if (ballotsB && ballotsB[id]){
+        return ballotsB[id];
+    }
+
+    const BV = B.votes || {};
+    for (const target in BV){
+        if (!Object.prototype.hasOwnProperty.call(BV, target)) continue;
+        const val = BV[target];
+        if (!val) continue;
+
+        if (Array.isArray(val) && val.indexOf(id) !== -1){
+            return target;
+        }
+        if (typeof val === "object" && Array.isArray(val.voters) &&
+            val.voters.indexOf(id) !== -1){
+            return target;
+        }
+    }
+
+    return "";
+}
+
+function canVote(ep, id){
+    const be = banishedInEpisode(id);
+    if (be && be <= ep) return false;
+    if (isFinalHitList(ep, id)) return false;
+    if (isSuperVillain(ep, id)) return false;
+    if (ep === 6) return false;
+
+    return true;
+}
+
+    const cast = (state.castVillains || []).map(p => p.id);
+    const elimSorted = placements.eliminated
+        .slice()
+        .sort((a,b) => b.episode - a.episode)
+        .map(e => e.id);
+
+    const rowOrder = [];
+    const added = new Set();
+    function add(id){
+        if (id && !added.has(id)){
+            added.add(id);
+            rowOrder.push(id);
+        }
+    }
+    add(placements.winner);
+    add(placements.second);
+    add(placements.third);
+    elimSorted.forEach(add);
+    cast.forEach(add);
+
+    const rHead = doc.createElement("tr");
+    rHead.appendChild(makeCell(doc, "td", "Villain", "s0 namecol"));
+    for (let ep = 1; ep <= 5; ep++){
+        rHead.appendChild(makeCell(doc, "td", "Ep " + ep, "s0"));
+    }
+    rHead.appendChild(makeCell(doc, "td", "Ep 6", "s0"));
+    rHead.appendChild(makeCell(doc, "td", "Finale", "s0"));
+    tbody.appendChild(rHead);
+
+function makeNormalCell(ep, id, banEp){
+    if (banEp && banEp <= ep) return makeCell(doc, "td", "", "s1");
+    if (isSuperVillain(ep, id)){
+        return makeCell(doc, "td", "Supervillain", "sv");
+    }
+
+    if (isFinalHitList(ep, id)){
+        return makeCell(doc, "td", "Hit List", "hl");
+    }
+    if (isRedemptionWinner(ep, id)){
+        const vt = voteTarget(ep, id);
+        return makeCell(doc, "td", vt ? nameOf(state, vt) : "", "rw");
+    }
+
+    if (canVote(ep, id)){
+        const vt = voteTarget(ep, id);
+        return makeCell(doc, "td", vt ? nameOf(state, vt) : "", "s1");
+    }
+
+    return makeCell(doc, "td", "", "s1");
+}
+    function makeEP6MainCell(id){
+        if (isSuperVillain(6, id)){
+            return makeCell(doc, "td", "Supervillain", "sv");
+        }
+        if (isRedemptionWinner(6, id)){
+            return makeCell(doc, "td", "No Votes", "rw");
+        }
+        return makeCell(doc, "td", "No Votes", "s1");
+    }
+
+    function makeEP6JuryCell(id){
+        if (id === placements.winner){
+            return makeCell(doc, "td", "Winner", "win");
+        }
+        if (id === placements.second){
+            return makeCell(doc, "td", "Runner-up", "ru");
+        }
+        if (id === placements.third){
+            return makeCell(doc, "td", "Third Place", "tp");
+        }
+        const vt = voteTarget(6, id);
+        return makeCell(doc, "td", vt ? nameOf(state, vt) : "", "s1");
+    }
+
+    rowOrder.forEach(id => {
+        const row = doc.createElement("tr");
+        row.appendChild(makeCell(doc, "td", nameOf(state, id), "namecol"));
+
+        const banEp = banishedInEpisode(id);
+        if (banEp && banEp < 6){
+            for (let ep = 1; ep < banEp; ep++){
+                row.appendChild(makeNormalCell(ep, id, banEp));
+            }
+
+            if (isFinalHitList(banEp, id)){
+                row.appendChild(makeCell(doc, "td", "Hit List", "hl"));
+            } else if (isSuperVillain(banEp, id)){
+                row.appendChild(makeCell(doc, "td", "Supervillain", "sv"));
+            } else if (isRedemptionWinner(banEp, id)){
+                row.appendChild(makeCell(doc, "td", "Redemption Win", "rw"));
+            } else {
+                row.appendChild(makeCell(doc, "td", "Banished", "ban"));
+            }
+
+            const colspan = 6 - banEp; // (banEp+1 .. 6 main) inclusive
+            row.appendChild(makeCell(doc, "td", "Banished", "ban", { colspan }));
+
+            const vt6 = voteTarget(6, id);
+            row.appendChild(makeCell(doc, "td", vt6 ? nameOf(state, vt6) : "", "s1"));
+
+            tbody.appendChild(row);
+            return;
+        }
+
+if (banEp === 6){
+    for (let ep = 1; ep <= 5; ep++){
+        row.appendChild(makeNormalCell(ep, id, banEp));
+    }
+    row.appendChild(makeCell(doc, "td", "Banished", "ban"));
+    const vt6 = voteTarget(6, id);
+    row.appendChild(makeCell(doc, "td", vt6 ? nameOf(state, vt6) : "", "s1"));
+
+    tbody.appendChild(row);
+    return;
+}
+
+        for (let ep = 1; ep <= 5; ep++){
+            row.appendChild(makeNormalCell(ep, id, banEp));
+        }
+        row.appendChild(makeEP6MainCell(id));
+        row.appendChild(makeEP6JuryCell(id));
+        tbody.appendChild(row);
+    });
+}
+
+function renderSeasonChart(){
+    const SCH = buildTable(document);
+    if (!SCH) return;
+    buildHeaderRow(SCH);
+    buildEpisodeSummaryRows(SCH);
+    buildVillainGrid(SCH);
+}
+
+if (document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", renderSeasonChart);
+} else {
+    renderSeasonChart();
+}
+
+})();
+</script>
+</body>
+</html>

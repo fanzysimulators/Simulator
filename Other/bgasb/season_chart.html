@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png" href="../../favicon.png">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Season Chart — BGASB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme: dark; --bg:#0b0f16; --panel:#121826; --border:#1a2233; --ink:#e9eefb; }
+  html, body { margin:0; padding:0; font-family:'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); color:var(--ink); }
+  .page { padding:20px; max-width:1200px; margin:0 auto; }
+  h1 { font-weight:700; margin:6px 0 2px; }
+  .muted { opacity:.85; font-weight:300; }
+  .notice { margin:18px 0; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(40,60,90,.35); }
+
+  .s0{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#eaecf0;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:9pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s1{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;}
+  .s3{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#00bfff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WIN */
+  .s5{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#008000;text-align:center;color:#ffffff;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* ELIM */
+  .s6{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#00ff00;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* WINNER */
+  .s8{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#87ceeb;text-align:center;font-weight:bold;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SECOND/THIRD */
+  .s11{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ff6347;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* OUT */
+  .s12{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#a9a9a9;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* after OUT grey */
+  .sSAFE{border-bottom:1px SOLID #a9a9a9;border-right:1px SOLID #a9a9a9;background-color:#ffffff;text-align:center;color:#202122;font-family:Arial;font-size:10pt;vertical-align:middle;white-space:normal;overflow-wrap:anywhere;direction:ltr;padding:6px 8px;} /* SAFE == white */
+
+  .ritz .grid-container {
+    display: inline-block;
+    max-width: 100%;
+    background: var(--panel);
+    border: 1px solid #a9a9a9;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35) inset;
+    overflow: auto;
+  }
+
+  .ritz.grid-container{
+    overflow:auto;
+  }
+
+  table.waffle{
+    border-collapse: collapse;
+    table-layout: auto;
+    width: auto;
+    margin: 0 auto;
+  }
+
+  table.waffle th,
+  table.waffle td{
+    border: 1px solid #999999;
+    padding: 6px 8px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .name-cell{ text-align: center; }
+
+  .swatch{
+    width: 12px !important;
+    min-width: 12px !important;
+    max-width: 12px !important;
+    padding: 0 !important;
+  }
+
+  .c-dead{
+    background:#999999 !important;
+    border-color:#999999 !important;
+    color:#111 !important;
+  }
+
+  .c-winMajor{ background:#4169e1; color:#fff; font-weight:700; }
+  .c-winTeam { background:#00bfff; color:#000; font-weight:400; }
+  .c-won     { background:#ffff00; color:#000; font-weight:400; }
+  .c-nom     { background:#ffc0cb; color:#000; font-weight:400; }
+  .c-out     { background:#ff6347; color:#000; font-weight:400; }
+
+  .c-winner  { background:#00ff00; color:#000; font-weight:700; }
+  .c-second  { background:#87ceeb; color:#000; font-weight:700; }
+  .c-third   { background:#ffa500; color:#000; font-weight:700; }
+
+  .ritz .grid-container{
+    background:#ffffff;
+    box-shadow:none;
+  }
+
+  table.waffle{
+    font-family: Arial, sans-serif;
+    color:#202122;
+    background:#ffffff;
+  }
+
+  table.waffle th{
+    background:#eaecf0;
+    color:#202122;
+    font-weight:700;
+  }
+
+  table.waffle td{
+    background:#ffffff;
+    color:#202122;
+    font-weight:400;
+  }
+
+  table.waffle td.swatch{
+    background: transparent;
+  }
+
+
+  td.c-winMajor{ background:#4169e1 !important; color:#ffffff !important; font-weight:700 !important; }
+  td.c-winTeam { background:#00bfff !important; color:#000000 !important; font-weight:400 !important; }
+  td.c-won     { background:#ffff00 !important; color:#000000 !important; font-weight:400 !important; }
+  td.c-nom     { background:#ffc0cb !important; color:#000000 !important; font-weight:400 !important; }
+  td.c-out     { background:#ff6347 !important; color:#000000 !important; font-weight:400 !important; }
+
+  td.c-winner  { background:#00ff00 !important; color:#000000 !important; font-weight:700 !important; }
+  td.c-second  { background:#87ceeb !important; color:#000000 !important; font-weight:700 !important; }
+  td.c-third   { background:#ffa500 !important; color:#000000 !important; font-weight:700 !important; }
+
+  td.c-dead{
+    background:#999999 !important;
+    border-color:#999999 !important;
+    color:#111111 !important;
+  }
+
+  td.swatch{ padding:0 !important; }
+
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Season Chart</h1>
+    <div class="notice" id="msg" style="display:none;"></div>
+    <div class="ritz grid-container" dir="ltr">
+      <table cellpadding="0" cellspacing="0" class="waffle" id="chart"></table>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const KEY = "challenge-bgasb-season";
+  const GOLD = "#d4af37";
+  const RED  = "#b30000";
+
+  const tbl = document.getElementById("chart");
+  const msg = document.getElementById("msg");
+
+  function readState(){
+    const raw = sessionStorage.getItem(KEY) || localStorage.getItem(KEY);
+    if(!raw) return null;
+    try{ return JSON.parse(raw); }catch(e){ return null; }
+  }
+
+  const state = readState();
+  if(!state || !state.episodes || !state.players){
+    msg.style.display = "block";
+    msg.textContent = 'No BGASB season found. Open the BGASB simulator, simulate the season, then click "Season Chart".';
+    return;
+  }
+
+  const episodes = state.episodes || {};
+  const players = Array.isArray(state.players) ? state.players.slice() : [];
+
+  // Build elimination map from placements
+  const elimEpById = Object.create(null);
+  const eliminated = (state.placements && Array.isArray(state.placements.eliminated)) ? state.placements.eliminated : [];
+  eliminated.forEach(r => {
+    if(r && r.id != null && r.episode != null) elimEpById[r.id] = r.episode;
+  });
+
+  // Finalists (top 3)
+  const final = (state.placements && state.placements.final) ? state.placements.final : {};
+  const winner = final.first || null;
+  const second = final.second || null;
+  const third  = final.third || null;
+
+  // Team since Episode 1
+  const teamOf = Object.create(null);
+  let goldIds = [];
+  let redIds  = [];
+  const E1 = episodes[1] || null;
+
+  if(E1 && E1.teamselect && Array.isArray(E1.teamselect.goldIds) && Array.isArray(E1.teamselect.redIds)){
+    goldIds = E1.teamselect.goldIds.slice();
+    redIds  = E1.teamselect.redIds.slice();
+  } else if(E1 && E1.teamsSnapshot){
+    goldIds = (E1.teamsSnapshot.gold || E1.teamsSnapshot.goldIds || []).slice();
+    redIds  = (E1.teamsSnapshot.red  || E1.teamsSnapshot.redIds  || []).slice();
+  } else if(state.teams){
+    goldIds = (state.teams.gold && Array.isArray(state.teams.gold.ids)) ? state.teams.gold.ids.slice() : [];
+    redIds  = (state.teams.red  && Array.isArray(state.teams.red.ids )) ? state.teams.red.ids.slice()  : [];
+  }
+
+  goldIds.forEach(id => teamOf[id] = "gold");
+  redIds.forEach(id  => teamOf[id] = "red");
+
+  function nicknameOf(id){
+    const p = players.find(x => x && x.id === id);
+    if(!p) return String(id);
+    return (p.nickname || p.nick || p.name || String(id));
+  }
+
+  function teamColorOf(id){
+    const t = teamOf[id];
+    if(t === "gold") return GOLD;
+    if(t === "red")  return RED;
+    return "";
+  }
+
+  function isNominated(E, id){
+    if(!E) return false;
+    if(E.nominations && Array.isArray(E.nominations.nominees) && E.nominations.nominees.indexOf(id) !== -1) return true;
+    // Episode 12 uses voting.nominees
+    if(E.voting && Array.isArray(E.voting.nominees) && E.voting.nominees.indexOf(id) !== -1) return true;
+    return false;
+  }
+
+  function cellSpec(code, cls){
+    return { code, cls };
+  }
+
+  function episodeCell(epNum, id){
+    const elimEp = elimEpById[id];
+
+    // Eliminated this episode
+    if(elimEp === epNum) return cellSpec("OUT", "c-out");
+
+    // After eliminated
+    if(elimEp != null && epNum > elimEp) return cellSpec("", "c-dead");
+
+    const E = episodes[epNum] || null;
+
+    // Default SAFE
+    let spec = cellSpec("SAFE", "");
+
+    // Episodes 1–6: captain/team logic
+    if(epNum >= 1 && epNum <= 6 && E && E.team && E.team.winner){
+      const teamWinner = E.team.winner; // "gold" or "red"
+      const t = teamOf[id];
+
+      if(E.captain && (id === E.captain.gold || id === E.captain.red)){
+        // captains: winning captain gets WIN major, losing captain gets WON
+        const winCap = (teamWinner === "gold") ? E.captain.gold : E.captain.red;
+        const loseCap= (teamWinner === "gold") ? E.captain.red  : E.captain.gold;
+
+        if(id === winCap) spec = cellSpec("WIN", "c-winMajor");
+        else if(id === loseCap) spec = cellSpec("WON", "c-won");
+      } else {
+        // team members on winning team
+        if(t && t === teamWinner) spec = cellSpec("WIN", "c-winTeam");
+      }
+    }
+
+    // Episodes 7–12: battle winner is WIN major
+    if(epNum >= 7 && epNum <= 12 && E && E.battle && E.battle.winner){
+      if(E.battle.winner === id) spec = cellSpec("WIN", "c-winMajor");
+    }
+
+    // Nominees show NOM unless they already have a WIN/WON
+    if(spec.code === "SAFE" && isNominated(E, id)) spec = cellSpec("NOM", "c-nom");
+
+    return spec;
+  }
+
+  function finaleCell(id){
+    const elimEp = elimEpById[id];
+    if(id === winner) return cellSpec("WINNER", "c-winner");
+    if(id === second) return cellSpec("SECOND", "c-second");
+    if(id === third)  return cellSpec("THIRD",  "c-third");
+
+    // Everyone eliminated before/including Ep12 (including 4th in Ep12) is grey in Finale
+    if(elimEp != null) return cellSpec("", "c-dead");
+
+    return cellSpec("SAFE", "");
+  }
+
+  // Row ordering: top 3 first, then eliminated by most-recent episode (desc)
+  const allIds = players.map(p => p && p.id).filter(Boolean);
+
+  const top3 = [winner, second, third].filter(Boolean);
+  const rest = allIds.filter(id => top3.indexOf(id) === -1);
+
+  rest.sort((a,b) => {
+    const ea = elimEpById[a] ?? -1;
+    const eb = elimEpById[b] ?? -1;
+    if(eb !== ea) return eb - ea; // most recent elimination first
+    const na = nicknameOf(a).toLowerCase();
+    const nb = nicknameOf(b).toLowerCase();
+    if(na < nb) return -1;
+    if(na > nb) return 1;
+    return 0;
+  });
+
+  const rowIds = top3.concat(rest);
+
+  // Build header
+  const trh = document.createElement("tr");
+
+  const thName = document.createElement("th");
+  thName.textContent = "NAME";
+  trh.appendChild(thName);
+
+  const thTeam = document.createElement("th");
+  thTeam.textContent = "";   // blank header
+  thTeam.className = "swatch";
+  trh.appendChild(thTeam);
+
+  for(let ep=1; ep<=12; ep++) {
+    const th = document.createElement("th");
+    th.textContent = "EP " + ep;
+    trh.appendChild(th);
+  }
+
+  const thF = document.createElement("th");
+  thF.textContent = "FINALE";
+  trh.appendChild(thF);
+
+  tbl.appendChild(trh);
+
+  // Rows
+  rowIds.forEach(id => {
+    const tr = document.createElement("tr");
+
+    const tdName = document.createElement("td");
+    tdName.className = "name-cell";
+    tdName.textContent = nicknameOf(id);
+    tr.appendChild(tdName);
+
+    const tdStrip = document.createElement("td");
+    tdStrip.className = "swatch";
+    const c = teamColorOf(id);
+    if(c) tdStrip.style.background = c;
+    tr.appendChild(tdStrip);
+
+    for(let ep=1; ep<=12; ep++) {
+      const spec = episodeCell(ep, id);
+      const td = document.createElement("td");
+      td.textContent = spec.code;
+      if(spec.cls) td.className = spec.cls;
+      tr.appendChild(td);
+    }
+
+    const fin = finaleCell(id);
+    const tdFin = document.createElement("td");
+    tdFin.textContent = fin.code;
+    if(fin.cls) tdFin.className = fin.cls;
+    tr.appendChild(tdFin);
+
+    // After elimination: grey out ALL later cells (including Finale)
+    const elimEp = elimEpById[id];
+    if(elimEp != null){
+      // ep columns are: NAME(0), STRIP(1), EP1 starts at 2
+      for(let ep=elimEp+1; ep<=12; ep++) {
+        const td = tr.children[1 + 1 + ep]; // 2 + (ep-1) => ep+1, but using 1+1+ep is correct
+        if(td) td.className = "c-dead";
+        if(td) td.textContent = "";
+      }
+      // Finale is last
+      const tdLast = tr.lastElementChild;
+      if(tdLast) {
+        tdLast.className = "c-dead";
+        tdLast.textContent = "";
+      }
+    }
+
+    tbl.appendChild(tr);
+  });
+
+})();
+</script>
+</body>
+</html>
