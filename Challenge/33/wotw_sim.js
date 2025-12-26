@@ -980,7 +980,8 @@ if(maleWinner && femaleWinner){
     }
     E.elim = elim;
   }
-
+  }
+  
   function simulateIndividualEpisode(ep){
     var E = state.episodes[ep] = {};
     E.status = aliveIds().slice();
