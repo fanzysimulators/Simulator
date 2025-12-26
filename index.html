@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1"
+  />
+  <title>Fanzy's Simulator – Main</title>
+
+  <!-- Montserrat -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="fanzy.css" />
+<link rel="icon" type="image/png" href="./favicon.png">
+</head>
+<body>
+  <!-- Parallax / Animated background stack -->
+  <div class="bg fx-nebula" aria-hidden="true"></div>
+  <div class="bg fx-hex" aria-hidden="true"></div>
+  <div class="bg fx-circuit" aria-hidden="true"></div>
+  <div class="bg fx-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand">
+      <span class="logo-dot" aria-hidden="true"></span>
+      <h1>Fanzy’s Simulator</h1>
+    </div>
+
+    <nav class="top-nav" aria-label="Primary">
+      <a class="btn nav" href="main.html" aria-current="page">Home</a>
+      <a class="btn nav" href="https://discord.com/invite/your-server" target="_blank" rel="noopener">Discord</a>
+      <a class="btn nav" href="https://forms.gle/your-form" target="_blank" rel="noopener">Suggestions</a>
+    </nav>
+  </header>
+
+  <div class="page-shell">
+    <!-- Left Sidebar: Current Bugs -->
+    <aside class="sidebar left">
+      <div class="panel">
+        <h3>Current Bugs</h3>
+        <ul class="bullet-list">
+          <li>Styling inconsistencies.</li>
+          <li>Inconsistent eliminations in Cutthroat and Gauntlet.</li>
+          <li>Inconsistent "Placements" in Battle of the Seasons</li>
+          <li>Basic elimination logic in all seasons except: America's Next Top Model, Bad Girls All Star Battle and The Challenge: War of The Worlds.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="content">
+      <!-- Welcome -->
+      <section class="block">
+        <header class="block-head center">
+          <h2>WELCOME TO FANZY&#39;S REALITY TV SIMULATOR</h2>
+          <p class="muted">
+            <strong>⚠️ BETA WARNING: ⚠️</strong> This is an early beta build of the simulator. Expect bugs, odd results,
+            and the occasional page that breaks or stops working. If something glitches, refreshing the page usually helps.
+          </p>
+        </header>
+
+        <p class="muted center">How to start:</p>
+        <ul class="bullet-list">
+          <li><strong>Pick a season</strong> to simulate.</li>
+          <li><strong>Choose your cast</strong> — randomize a cast, pick players manually, or create custom players.</li>
+          <li><strong>Set your players up</strong> — customize or randomize profiles and relationships.</li>
+          <li><strong>Simulate the season</strong> and watch the chaos unfold.</li>
+        </ul>
+      </section>
+      <!-- MTV’s The Challenge -->
+      <section class="block">
+        <header class="block-head center">
+          <h2>MTV’s The Challenge</h2>
+          <p class="muted">Pick a season to start simulating.</p>
+        </header>
+
+        <!-- Seasons grid (logos optional; files in ./Logos/) -->
+        <div class="season-grid" role="list">
+
+          <!-- Battle of The Sexes 2 (S9) -->
+          <a role="listitem" class="tile season" href="./Challenge/9/index.html">
+            <img class="season-logo" src="Logos/s9_bots2.webp" alt="Battle of the Sexes 2" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 9</span>
+              <span class="tile-sub">Battle of The Sexes 2</span>
+            </div>
+          </a>
+
+          <!-- Gauntlet (S11) -->
+          <a role="listitem" class="tile season" href="./Challenge/11/index.html">
+            <img class="season-logo" src="Logos/gauntlet.webp" alt="Gauntlet 2 logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 11</span>
+              <span class="tile-sub">Gauntlet 2</span>
+            </div>
+          </a>
+
+          <!-- Duel II (S17) -->
+          <a role="listitem" class="tile season" href="./Challenge/17/index.html">
+            <img class="season-logo" src="Logos/duel2.webp" alt="Duel 2 Logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 17</span>
+              <span class="tile-sub">Duel 2</span>
+            </div>
+          </a>
+
+          <a role="listitem" class="tile season" href="./Challenge/19/index.html">
+            <img class="season-logo" src="Logos/fresh_meat.webp" alt="Fresh Meat logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 19</span>
+              <span class="tile-sub">Fresh Meat 2</span>
+            </div>
+          </a>
+
+          <!-- Cutthroat (S20) -->
+          <a role="listitem" class="tile season" href="./Challenge/20/index.html">
+            <img class="season-logo" src="Logos/cutthroat.webp" alt="Cutthroat Logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 20</span>
+              <span class="tile-sub">Cutthroat</span>
+            </div>
+          </a>
+
+          <!-- Cutthroat (S23) -->
+          <a role="listitem" class="tile season" href="./Challenge/23/index.html">
+            <img class="season-logo" src="Logos/23_bots.webp" alt="BOTS Logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 23</span>
+              <span class="tile-sub">Battle of The Seasons (2012)</span>
+            </div>
+          </a>
+
+          <!-- Free Agents (S25) -->
+          <a role="listitem" class="tile season" href="./Challenge/25/index.html">
+            <img class="season-logo" src="Logos/free_agents.webp" alt="Free Agents logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 25</span>
+              <span class="tile-sub">Free Agents</span>
+            </div>
+          </a>
+
+          <!-- Final Reckoning (S32) -->
+          <a role="listitem" class="tile season" href="./Challenge/32/index.html">
+            <img class="season-logo" src="Logos/final_reckoning.webp" alt="Final Reckoning logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 32</span>
+              <span class="tile-sub">Final Reckoning</span>
+            </div>
+          </a>
+
+          <!-- War of The Worlds (S33) -->
+          <a role="listitem" class="tile season" href="./Challenge/33/index.html">
+            <img class="season-logo" src="Logos/wotw.webp" alt="War of The Worlds logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Season 33</span>
+              <span class="tile-sub">War of The Worlds</span>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+      <!-- Miscellaneous Shows -->
+      <section class="block">
+        <header class="block-head center">
+          <h2>Miscellaneous Shows</h2>
+          <p class="muted">More reality chaos to simulate.</p>
+        </header>
+
+        <div class="misc-grid" role="list">
+          <a role="listitem" class="tile show" href="./Other/antm/index.html">
+            <img class="season-logo small" src="Logos/antm.webp" alt="America’s Next Top Model logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">America’s Next Top Model</span>
+            </div>
+          </a>
+
+          <a role="listitem" class="tile show" href="./Other/house_of_villains/index.html">
+            <img class="season-logo small" src="Logos/house_of_villains.webp" alt="House of Villains logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">House of Villains</span>
+            </div>
+          </a>
+
+          <a role="listitem" class="tile show" href="./Other/bgasb/index.html">
+            <img class="season-logo small" src="Logos/bad_girls_all_star_battle.webp" alt="Bad Girls All Star Battle logo" loading="lazy" onerror="this.style.display='none'">
+            <div class="season-text">
+              <span class="tile-title">Bad Girls All Star Battle</span>
+            </div>
+          </a>
+
+        </div>
+      </section>
+    </main>
+
+    <aside class="sidebar right">
+      <div class="panel">
+        <h3>Available Casts</h3>
+        <ul class="bullet-list">
+          <li>Bad Girls All Star Battle: 1 & 2</li>
+          <li>Love Island USA 7</li>
+          <li>Big Brother 15-27</li>
+          <li>Survivor 48-49</li>
+          <li>The Challenge 25, 40, 41</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="site-footer">
+    <p class="muted">
+      © <span id="year"></span> Fanzy’s Simulator. All rights reserved.
+    </p>
+  </footer>
+
+  <script>
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Scroll-linked parallax (reduced motion aware)
+    (function(){
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) return;
+
+      const nebula  = document.querySelector('.fx-nebula');
+      const hex     = document.querySelector('.fx-hex');
+      const circuit = document.querySelector('.fx-circuit');
+
+      const update = () => {
+        const y = window.scrollY || window.pageYOffset;
+        nebula.style.transform  = `translate3d(0, ${y * -0.06}px, 0)`;
+        hex.style.transform     = `translate3d(0, ${y * -0.12}px, 0)`;
+        circuit.style.transform = `translate3d(0, ${y * -0.18}px, 0)`;
+      };
+
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+    })();
+  </script>
+</body>
+</html>
